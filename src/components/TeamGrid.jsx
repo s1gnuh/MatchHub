@@ -3,7 +3,7 @@
 // Grid of team crests linking to team detail pages.
 export default function TeamGrid({ teams }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
       {teams.map((t) => (
         <Link key={t.id} to={`/teams/${t.id}`}
           className="animate-fade-in flex flex-col items-center gap-2 rounded-xl bg-card p-4 text-center shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-lg">

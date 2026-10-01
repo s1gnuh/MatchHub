@@ -1,4 +1,5 @@
-﻿import { Link, NavLink } from 'react-router-dom'
+﻿import { useEffect, useRef } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { FaFacebookF, FaGithub, FaInstagram } from 'react-icons/fa'
 import { useLang } from '../utils/i18n.jsx'
 
@@ -32,9 +33,21 @@ function LanguageSwitch() {
 // Mobile: row 1 = logo + socials/language, row 2 = nav. Desktop (sm+): one row.
 export default function Header() {
   const { t } = useLang()
+  // "Matches" stays highlighted while a match is open (/matches/:id belongs to the matches screen).
+  const { pathname } = useLocation()
+  const onMatches = pathname === '/' || pathname.startsWith('/matches/')
+  // Publish the header height as --hdr so the desktop layout can fill exactly the rest of the viewport.
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !('ResizeObserver' in window)) return
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--hdr', `${el.offsetHeight}px`))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-black/85 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:gap-x-4 sm:px-6 sm:py-3">
+    <header ref={ref} className="sticky top-0 z-20 border-b border-line bg-black/85 backdrop-blur">
+      <div className="mx-auto flex max-w-[1920px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:gap-x-4 sm:px-6 sm:py-3">
         <Link to="/" aria-label="MatchHub home" className="group order-1 flex items-center gap-2">
           <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" className="hidden h-9 w-9 transition duration-500 group-hover:rotate-[360deg] min-[400px]:block" />
           <span className="-skew-x-6 rounded-lg bg-white px-2.5 py-1 font-logo text-xl font-black italic leading-none tracking-tight shadow-lg shadow-primary/10 transition duration-300 group-hover:shadow-primary/40 sm:px-3 sm:text-2xl">
@@ -44,7 +57,7 @@ export default function Header() {
         </Link>
 
         <nav className="order-3 flex w-full gap-1 sm:order-2 sm:ml-auto sm:w-auto">
-          <NavLink to="/" end className={link}>{t('nav.matches')}</NavLink>
+          <NavLink to="/" end className={() => link({ isActive: onMatches })}>{t('nav.matches')}</NavLink>
           <NavLink to="/leagues" className={link}>{t('nav.leagues')}</NavLink>
         </nav>
 

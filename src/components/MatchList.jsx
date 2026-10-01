@@ -1,11 +1,15 @@
+import { useContext } from 'react'
 import MatchCard from './MatchCard.jsx'
+import { ListContext } from './ListContext.js'
 import { useLang } from '../utils/i18n.jsx'
 import { dayKey, relativeDay, formatDate } from '../utils/helpers.js'
 
 // Groups matches by local day; each group gets a "Today / Tomorrow / date" heading.
-// `compact` renders small day labels, for use inside a round section.
+// `compact` renders small day labels, for use inside a round section. In a dense list (ListContext) the matches
+// are compact rows in one column instead of a card grid.
 export default function MatchList({ matches, compact = false }) {
   const { t } = useLang()
+  const { dense } = useContext(ListContext)
   const groups = matches.reduce((acc, m) => {
     const k = dayKey(m.utcDate)
     ;(acc[k] ||= []).push(m)
@@ -35,7 +39,9 @@ export default function MatchList({ matches, compact = false }) {
               )}
             </h2>
           )}
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <div className={dense
+            ? 'divide-y divide-line overflow-hidden rounded-lg border border-line'
+            : 'grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'}>
             {groups[k].map((m, i) => <MatchCard key={m.id} match={m} index={i} today={isToday} />)}
           </div>
         </section>

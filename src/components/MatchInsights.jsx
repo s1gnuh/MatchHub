@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import FormDots from './FormDots.jsx'
 import useApi from '../utils/useApi.js'
@@ -9,16 +10,17 @@ import { useLang } from '../utils/i18n.jsx'
 const name = (team) => team.shortName || team.name
 
 // Recent form of both teams, plus their head-to-head record.
-// Form and the in-season meetings come from the competition's cached match list. The multi-season record comes
-// from /matches/{id}/head2head (1 request, cached for hours), which lists meetings across the seasons the free
-// plan covers. If that request fails or lists nothing we keep the in-season view.
+// Form and the in-season meetings come from the competition's cached match list (no request). Earlier seasons
+// come from /matches/{id}/head2head, which costs a request, so it is only loaded when the visitor asks for it
+// (or is already in memory). If that request fails or lists nothing we keep the in-season view.
 export default function MatchInsights({ match }) {
   const { t } = useLang()
   const { homeTeam: home, awayTeam: away } = match
   const list = useApi(['matches', match.competition.code], () => fetchCompetitionMatches(match.competition.code))
-  const h2h = useApi(['h2h', String(match.id)], () => fetchHead2Head(match.id))
+  const [wantAll, setWantAll] = useState(false)
+  const h2h = useApi(['h2h', String(match.id)], () => fetchHead2Head(match.id), { enabled: wantAll })
 
-  if (list.loading && h2h.loading) return <div className="h-40 animate-pulse rounded-xl bg-card" role="status" aria-label={t('loading')} />
+  if (list.loading) return <div className="h-40 animate-pulse rounded-xl bg-card" role="status" aria-label={t('loading')} />
   if (!list.data && !h2h.data) return null // insights are optional: stay quiet on errors
 
   // Multi-season meetings from the API when it lists any, otherwise this season's meetings from the cached list.
@@ -80,6 +82,13 @@ export default function MatchInsights({ match }) {
             </ul>
           </>
         )}
+        {!fromApi && !h2h.data && (
+          <button onClick={() => setWantAll(true)} disabled={h2h.loading}
+            className="mt-3 w-full rounded-full border border-line py-2 text-sm font-semibold text-primary transition hover:border-primary/50 hover:bg-subtle disabled:opacity-60">
+            {h2h.loading ? t('loading') + '…' : t('mi.loadAll')}
+          </button>
+        )}
+        {h2h.error && <p className="mt-2 text-center text-xs text-muted">{t('err.' + (h2h.error.code || 'http'), { status: h2h.error.status ?? '' })}</p>}
       </section>
     </div>
   )

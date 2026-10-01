@@ -7,7 +7,7 @@ import { useLang } from '../utils/i18n.jsx'
 
 // Rank badge: gold / silver / bronze for the podium, plain number otherwise.
 const MEDAL = { 1: 'bg-primary text-black', 2: 'bg-zinc-300 text-black', 3: 'bg-amber-700 text-white' }
-const Rank = ({ n, podium }) =>
+export const Rank = ({ n, podium }) =>
   n <= podium
     ? <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${MEDAL[n]}`}>{n}</span>
     : <span className="inline-block w-6 text-center">{n}</span>
@@ -32,7 +32,7 @@ export default function Standings({ standings, code }) {
         const podium = league ? 3 : 2
         return (
         <div key={g.group || i} className="animate-fade-in overflow-x-auto rounded-xl bg-card shadow-sm">
-          {g.group && <h2 className="px-4 pt-4 font-bold">{g.group.replace('_', ' ')}</h2>}
+          {groups.length > 1 && g.group && <h2 className="px-4 pt-4 font-bold">{g.group.replace('_', ' ')}</h2>}
           <table className={`w-full text-sm ${showForm ? 'min-w-[700px]' : 'min-w-[560px]'}`}>
             <thead className="text-left text-xs uppercase text-muted">
               <tr>

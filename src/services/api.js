@@ -126,6 +126,18 @@ export const COMPETITIONS = [
   { code: 'BSA', name: 'Série A', country: 'Brazil', emblem: `${EMBLEM}bsa.png` },
 ]
 
+/** A match taken from a stored, still-fresh competition match list, or null (lets match views skip a request). */
+export function findStoredMatch(id) {
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith(`${PREFIX}/competitions/`) || !key.endsWith('/matches:{}')) continue
+      const m = readCache(key, cacheTtl('/matches'))?.matches?.find((x) => x.id === id)
+      if (m) return m
+    }
+  } catch { /* storage unavailable */ }
+  return null
+}
+
 export const fetchCompetitionMatches = (code) => get(`/competitions/${code}/matches`).then((d) => d.matches)
 export const fetchMatch = (id) => get(`/matches/${id}`)
 // `season` = start year (e.g. 2024); omit for the current season. The free plan only covers the last few seasons.

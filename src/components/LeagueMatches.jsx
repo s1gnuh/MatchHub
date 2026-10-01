@@ -108,12 +108,12 @@ export default function LeagueMatches({ code, search = '' }) {
               <div className="flex gap-1 rounded-full bg-subtle p-1">
                 {MODES.map((m) => (
                   <button key={m} onClick={() => switchMode(m)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
+                    className={`rounded-full px-3 py-1.5 text-sm font-semibold capitalize sm:px-4 lg:px-3 2xl:px-4 transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
                     {t('m.' + m)}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-muted" aria-live="polite">{t(count === 1 ? 'm.one' : 'm.many', { n: count })}</p>
+              <p className="shrink-0 whitespace-nowrap text-sm text-muted" aria-live="polite">{t(count === 1 ? 'm.one' : 'm.many', { n: count })}</p>
             </div>
             {roundBar}
             {/* key restarts the animation when the mode, league or round changes */}

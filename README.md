@@ -76,6 +76,7 @@ Club info, competitions, coach and the full squad grouped by position.
 
 - **Fixtures & results** for 10 competitions, with **Premier League** selected by default. Switch league from the chip bar, toggle **Upcoming / Results**, and open any match for details.
 - **Live search** by team or league name, with a result count.
+- **Full-width desktop layout** (≥1024px): match list, the selected match and the league table side by side, each column scrolling on its own; opening a match from the list costs no API request. Phones and tablets keep the list → match page flow.
 - **Rounds view:** besides Upcoming / Results, step through any matchday or knockout round with prev/next buttons or a dropdown.
 - **Standings** with goals for / against, goal difference and a **recent-form** column (last 5 results), plus a **season picker** for the last few seasons (the free plan limits how far back it goes). Top three get gold / silver / bronze badges.
 - **Top scorers** with age, matches, assists and penalties; names open a **player page** (shirt number, position, nationality, age, current team). Squads show ages and link to player pages too.
