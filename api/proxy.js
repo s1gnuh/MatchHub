@@ -1,4 +1,4 @@
-// Vercel serverless function: proxies /api/* to football-data.org and adds the API key server-side,
+// Vercel serverless function (reached through the /api/* rewrite in vercel.json): proxies to football-data.org and adds the API key server-side,
 // so the key never ships in the browser bundle and no build-time env var is needed.
 //
 // Env (Vercel > Settings > Environment Variables): FOOTBALL_DATA_KEY
@@ -10,8 +10,9 @@ const ALLOWED = /^(matches|competitions|teams)(\/|$)/
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ message: 'Method not allowed' })
 
-  const { path = [], ...query } = req.query
-  const subPath = [].concat(path).join('/')
+  // vercel.json rewrites /api/<anything> to /api/proxy?path=<anything>
+  const { path = '', ...query } = req.query
+  const subPath = [].concat(path).join('/').replace(/^\/+/, '')
   if (!ALLOWED.test(subPath)) return res.status(404).json({ message: 'Not found' })
 
   const qs = new URLSearchParams(query).toString()
