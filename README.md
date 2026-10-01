@@ -177,7 +177,7 @@ GitHub Pages is static, so it needs the Cloudflare Worker proxy:
    ```
    Make sure `ALLOWED_ORIGINS` in `worker/wrangler.toml` contains your Pages origin.
 2. In the repo go to **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. Under **Settings → Secrets and variables → Actions → Variables** add `VITE_API_BASE_URL` (the worker URL, no trailing slash) and `VITE_KEYLESS` = `true`.
+3. Under **Settings → Secrets and variables → Actions → Variables** add `VITE_API_BASE_URL` (the worker URL, no trailing slash).
 4. Push to `main`. [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds and publishes the site.
 
 The app uses a relative Vite `base` and `HashRouter` (URLs look like `/#/leagues/PL`), so it works from any sub-path without server-side fallbacks.

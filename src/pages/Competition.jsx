@@ -5,6 +5,7 @@ import LeagueMatches from '../components/LeagueMatches.jsx'
 import Standings from '../components/Standings.jsx'
 import Scorers from '../components/Scorers.jsx'
 import TeamGrid from '../components/TeamGrid.jsx'
+import NotFound from './NotFound.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
 import { COMPETITIONS, fetchStandings, fetchScorers, fetchTeams } from '../services/api.js'
@@ -22,11 +23,12 @@ export default function Competition() {
   const { code } = useParams()
   const [tab, setTab] = useState('Matches')
   const comp = COMPETITIONS.find((c) => c.code === code)
+  if (!comp) return <NotFound />
 
   return (
     <>
       <Link to="/leagues" className="text-sm text-primary hover:underline">{t('comp.back')}</Link>
-      <h1 className="mb-4 mt-1 text-3xl font-extrabold tracking-tight">{comp ? comp.name : code}</h1>
+      <h1 className="mb-4 mt-1 text-3xl font-extrabold tracking-tight">{comp.name}</h1>
       <div className="no-scrollbar mb-6 flex gap-1 overflow-x-auto border-b border-line">
         {TABS.map((tb) => (
           <button key={tb} onClick={() => setTab(tb)}

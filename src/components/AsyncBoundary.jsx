@@ -1,4 +1,4 @@
-﻿import LoadingSkeleton from './LoadingSkleton.jsx'
+﻿import LoadingSkeleton from './LoadingSkeleton.jsx'
 import { useLang } from '../utils/i18n.jsx'
 
 // Shared loading / error wrapper: renders children only when data is ready.

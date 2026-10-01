@@ -1,4 +1,4 @@
-﻿import { Link, useParams } from 'react-router-dom'
+﻿import { Link, useNavigate, useParams } from 'react-router-dom'
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchTeam } from '../services/api.js'
@@ -8,6 +8,7 @@ import { useLang } from '../utils/i18n.jsx'
 export default function TeamDetail() {
   const { t: tr } = useLang()
   const { id } = useParams()
+  const navigate = useNavigate()
   const r = useApi(['team', id], () => fetchTeam(id))
   const t = r.data
   const squad = (t?.squad || []).reduce((acc, p) => {
@@ -18,7 +19,7 @@ export default function TeamDetail() {
 
   return (
     <>
-      <button onClick={() => history.back()} className="text-sm text-primary hover:underline">{tr('td.back')}</button>
+      <button onClick={() => navigate(window.history.state?.idx > 0 ? -1 : '/')} className="text-sm text-primary hover:underline">{tr('td.back')}</button>
       <div className="mt-3">
         <AsyncBoundary {...r}>
           {t && (
