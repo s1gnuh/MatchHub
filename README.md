@@ -2,11 +2,11 @@
 
 # ⚽ MatchHub
 
-**A fast, responsive football schedule app: fixtures, results, standings, top scorers and squads for Europe's top leagues.**
+**A fast, responsive football schedule app: fixtures, results, standings, top scorers and squads for the top football leagues.**
 
 [**Live demo →**](https://match-hub-xi.vercel.app/)
 
-React 18 · Vite · Tailwind CSS · TanStack Query
+React 18 · Vite · Tailwind CSS · TanStack Query · PWA
 
 </div>
 
@@ -40,57 +40,57 @@ It started as a small personal tool to save myself a few clicks a day. It was al
 
 ## Screenshots
 
-### Matches
-Fixtures for the selected league, with league chips, live search and an Upcoming / Results toggle.
+### Matches (desktop)
+One full-width screen: the match list, the selected match (form, head to head, squads) and the league table, each column scrolling on its own.
 
-![Matches](app%20picture/image1.png)
+![Matches](app%20picture/v2-matches-desktop.png)
 
 ### Leagues
-All supported competitions at a glance.
+All supported competitions with their logos.
 
-![Leagues](app%20picture/2.png)
+![Leagues](app%20picture/v2-leagues.png)
 
 ### Standings
-Full league table for each competition.
+Goals for / against, goal difference, recent form and a season picker.
 
-![Standings](app%20picture/3.png)
+![Standings](app%20picture/v2-standings.png)
 
 ### Top scorers
-Goals, assists and appearances for the league's leading players.
+Age, matches, assists, penalties and goals; names open a player page.
 
-![Top scorers](app%20picture/4.png)
-
-### Teams
-Every club in the league with its crest.
-
-![Teams](app%20picture/5.png)
+![Top scorers](app%20picture/v2-scorers.png)
 
 ### Team page
-Club info, competitions, coach and the full squad grouped by position.
+Club info, competitions and the full squad grouped by position, with ages and links to player pages.
 
-![Team page](app%20picture/6.png)
+![Team page](app%20picture/v2-team.png)
+
+### Phone
+Phones keep the simple flow: list first, tap a match to open it.
+
+<img src="app%20picture/v2-mobile-list.png" alt="Matches on a phone" width="320" />
 
 ---
 
 ## Features
 
-- **Fixtures & results** for 10 competitions, with **Premier League** selected by default. Switch league from the chip bar, toggle **Upcoming / Results**, and open any match for details.
+- **Fixtures & results** for 10 competitions, with **Premier League** selected by default. Switch league from the chip bar (with league logos); **Upcoming** and **Results** are grouped by matchday (or knockout round) and cover the **whole season**, results newest first.
+- **Rounds view:** step through any matchday or knockout round with prev/next buttons or a dropdown.
+- **Table position on match cards:** each team's current league position (`#3`) is shown until the match is finished.
 - **Live search** by team or league name, with a result count.
-- **Full-width desktop layout** (≥1024px): match list, the selected match and the league table side by side, each column scrolling on its own; opening a match from the list costs no API request. Phones and tablets keep the list → match page flow.
-- **Rounds view:** besides Upcoming / Results, step through any matchday or knockout round with prev/next buttons or a dropdown.
+- **Full-width desktop layout** (≥1024px): match list, the selected match and the league table (from 1360px) side by side, each column scrolling on its own. Opening a match from the list costs no API request. Phones and tablets keep the list → match page flow.
 - **Standings** with goals for / against, goal difference and a **recent-form** column (last 5 results), plus a **season picker** for the last few seasons (the free plan limits how far back it goes). Top three get gold / silver / bronze badges.
 - **Top scorers** with age, matches, assists and penalties; names open a **player page** (shirt number, position, nationality, age, current team). Squads show ages and link to player pages too.
-- **Match insights:** recent form of both teams and **head to head** across seasons, with **AET / Pens** badges and stage names (Quarter-finals, Final…) for cup matches.
+- **Match insights:** recent form of both teams and **head to head** (this season, or earlier seasons on request), with **AET / Pens** badges and stage names (Quarter-finals, Final…) for cup matches.
+- **Match page** with score, kickoff countdown, referee and the **squads of both teams** (players grouped by position, plus the coach).
+- **League pages** with four tabs: Matches, Standings, Top Scorers and Teams. **Team pages** with club info, running competitions and the full squad.
 - **Live feel:** pulsing LIVE dot, kickoff countdown, today's matches highlighted, and a back-to-top button.
-- **Installable (PWA):** add it to your home screen; the app shell opens offline.
-- **League pages** with four tabs: Matches, Standings, Top Scorers and Teams.
-- **Match detail** page that lists the **squads of both teams** (players grouped by position, plus the coach).
-- **Team pages** with club info, running competitions and the full squad.
 - **Hanoi time (GMT+7)** for every kickoff time and date, whatever the visitor's timezone.
-- **English / Vietnamese** language switch (remembered between visits).
+- **English / Vietnamese** language switch (remembered between visits), including localised league names (e.g. *Ngoại hạng Anh*, *VĐQG Tây Ban Nha (La Liga)*).
+- **Installable (PWA):** add it to your home screen; the app shell opens offline and the last loaded data is still shown.
 - **Black & gold dark UI** inspired by SofaScore, with page transitions, hover effects and skeleton loaders. Animations respect `prefers-reduced-motion`.
 - **Smart caching** with TanStack Query (in memory) and `localStorage`, so revisiting a tab does not call the API again, and the last known data is still shown when you are offline or rate-limited.
-- **Rate-limit friendly:** a client-side throttle stops requests before the API's limit and shows a friendly "slow down" message instead of an error.
+- **Rate-limit friendly:** a client-side throttle stops requests before the API's limit and shows a friendly "slow down" message instead of an error; heavier data (squads, earlier-season head to head) loads only when needed.
 - Friendly error states with a retry button.
 
 ### Supported competitions
@@ -107,6 +107,7 @@ Premier League, La Liga, Serie A, Bundesliga, Ligue 1, UEFA Champions League, Er
 | Data fetching | [TanStack Query](https://tanstack.com/query) 5 + Axios |
 | Icons | React Icons |
 | Data source | [football-data.org](https://www.football-data.org) v4 (free tier) |
+| PWA | Hand-written service worker (`public/sw.js`) + web manifest |
 | Hosting | Vercel (recommended) or GitHub Pages |
 
 ## Getting started
@@ -159,9 +160,9 @@ football-data.org only allows browser requests from `http://localhost`, so a dep
 | Vercel | Serverless function [`api/proxy.js`](api/proxy.js), reached through the rewrite in [`vercel.json`](vercel.json) | `FOOTBALL_DATA_KEY` env var |
 | GitHub Pages | Cloudflare Worker in [`worker/`](worker) | `FOOTBALL_DATA_KEY` worker secret |
 
-Only `matches`, `competitions` and `teams` paths are forwarded, and responses are edge-cached for 5 minutes so many visitors share one upstream request.
+Only `matches`, `competitions`, `teams` and `persons` paths are forwarded. Responses are edge-cached so many visitors share one upstream request: 5 minutes for fixtures and matches, 15 minutes for standings and scorers, 6 hours for head to head, 24 hours for teams, players and competition info.
 
-Endpoints used: `/matches`, `/matches/{id}`, `/competitions/{code}/matches`, `/competitions/{code}/standings`, `/competitions/{code}/scorers`, `/competitions/{code}/teams`, `/teams/{id}`.
+Endpoints used: `/competitions/{code}` (season list), `/competitions/{code}/matches`, `/competitions/{code}/standings`, `/competitions/{code}/scorers`, `/competitions/{code}/teams` (also carries every squad), `/matches/{id}`, `/matches/{id}/head2head`, `/teams/{id}`, `/persons/{id}`.
 
 ## Deployment
 
@@ -182,7 +183,7 @@ GitHub Pages is static, so it needs the Cloudflare Worker proxy:
    npx wrangler deploy
    npx wrangler secret put FOOTBALL_DATA_KEY
    ```
-   Make sure `ALLOWED_ORIGINS` in `worker/wrangler.toml` contains your Pages origin.
+   Make sure `ALLOWED_ORIGINS` in `worker/wrangler.toml` contains your Pages origin. After pulling updates that touch `worker/`, run `npx wrangler deploy` again.
 2. In the repo go to **Settings → Pages** and set **Source** to **GitHub Actions**.
 3. Under **Settings → Secrets and variables → Actions → Variables** add `VITE_API_BASE_URL` (the worker URL, no trailing slash).
 4. Push to `main`. [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) builds and publishes the site.
@@ -195,19 +196,22 @@ The app uses a relative Vite `base` and `HashRouter` (URLs look like `/#/leagues
 MatchHub/
 ├── api/proxy.js            # Vercel serverless proxy (adds the API key server-side)
 ├── worker/                 # Cloudflare Worker proxy (for GitHub Pages)
-├── public/                 # Static assets (logo)
+├── public/                 # Static assets: logo, PWA manifest, icons, service worker (sw.js)
 ├── src/
-│   ├── components/         # Header, MatchCard, MatchList, LeagueMatches, Standings,
-│   │                       # Scorers, TeamGrid, TeamSquad, SearchFilter, skeletons…
-│   ├── pages/              # Home, Leagues, Competition, MatchDetail, TeamDetail, NotFound
-│   ├── services/api.js     # Axios client, cache, throttle, endpoint functions
+│   ├── components/         # MatchCard, MatchList, RoundList, LeagueMatches, MatchPanel, MatchInsights,
+│   │                       # Standings, StandingsMini, Scorers, TeamSquad, TeamGrid, Header, SearchFilter…
+│   ├── pages/              # Home (also serves /matches/:id), Leagues, Competition, MatchDetail,
+│   │                       # TeamDetail, PlayerDetail, NotFound
+│   ├── services/api.js     # Axios client, cache, throttle, competitions list, endpoint functions
 │   ├── utils/
-│   │   ├── helpers.js      # Hanoi-time formatting, status badges, league colours
+│   │   ├── helpers.js      # Hanoi-time formatting, status badges, league names and colours
 │   │   ├── i18n.jsx        # EN / VI dictionary and language provider
-│   │   └── useApi.js       # TanStack Query wrapper used by every page
+│   │   ├── form.js         # Recent form and head to head from a match list
+│   │   ├── useApi.js       # TanStack Query wrapper used by every page
+│   │   └── useMatch.js …   # cache-first match lookup, table positions, media query, shared clock
 │   ├── styles/global.css   # Design tokens (black & gold palette)
 │   ├── App.jsx             # Layout + routes + page transition
-│   └── main.jsx            # Providers (Query, Language, Router)
+│   └── main.jsx            # Providers (Query, Language, Router) + service worker registration
 ├── tailwind.config.js
 ├── vite.config.js
 └── vercel.json
@@ -217,11 +221,13 @@ MatchHub/
 
 The free football-data.org tier allows **10 requests per minute**. MatchHub stays within it by:
 
-1. Keeping fetched data fresh for 10 minutes in memory (TanStack Query) and in `localStorage` (squads 24 hours, tables 30 minutes), falling back to the last stored copy when a request fails.
+1. Keeping fetched data fresh in memory (TanStack Query) and in `localStorage`: 10 minutes for fixtures, 30 minutes for tables and scorers, 6 hours for head to head, 24 hours for squads, players and competition info. If a request fails, the last stored copy is shown.
 2. Not refetching when the window regains focus.
 3. Skipping retries on key / rate-limit errors.
 4. Blocking the 10th uncached request within a minute on the client, with a friendly message.
-5. Caching proxy responses at the edge for 5 minutes.
+5. Caching proxy responses at the edge (5 minutes to 24 hours, see above).
+6. Reusing data already loaded: opening a match reads it from the competition's match list, the side table and the position badges share one standings request, and one `/teams` request covers every squad of a league.
+7. Loading heavy extras only on demand: squads when scrolled into view (or on a click for the default match on desktop) and earlier-season head to head on a click.
 
 Because all visitors of a deployed site share one API key, a very busy site can still hit the limit. In that case users see the same "slow down" message.
 
@@ -229,7 +235,7 @@ Because all visitors of a deployed site share one API key, a very busy site can 
 
 - **Colours:** edit the CSS variables in `src/styles/global.css`.
 - **Languages / wording:** edit `src/utils/i18n.jsx`.
-- **Leagues:** edit the `COMPETITIONS` list in `src/services/api.js` (the free tier only covers the competitions listed on football-data.org).
+- **Leagues:** edit the `COMPETITIONS` list in `src/services/api.js` (code, name, country and emblem URL) and add a `league.<code>` string per language in `src/utils/i18n.jsx` for the localised name. The free tier only covers the competitions listed on football-data.org.
 - **Default league:** change `DEFAULT_LEAGUE` in `src/pages/Home.jsx`.
 
 ## Credits
