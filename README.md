@@ -12,6 +12,32 @@ React 18 · Vite · Tailwind CSS · TanStack Query
 
 ---
 
+## About the app
+
+I watch a lot of football, and every week I found myself asking the same question: *who plays when, and at what time in Vietnam?*
+
+Answering it was always more work than it should be. I had to open a big sports website, close a pop-up or two, scroll past news, ads and betting banners, and then convert kickoff times from some other timezone in my head. Do that a few times a day, every day, and the small annoyance adds up.
+
+MatchHub is the app I wanted instead: one clean page that opens fast, shows only fixtures and results, and already uses **Hanoi time**. Pick a league, glance at the schedule, done. No clutter, no mental maths.
+
+### The pain points it solves
+
+| The annoyance | How MatchHub handles it |
+| --- | --- |
+| Heavy pages full of ads, news and pop-ups just to see one fixture | A lightweight page with only fixtures, results, standings, scorers and squads |
+| Kickoff times shown in the wrong timezone | Every time and date is shown in Hanoi time (GMT+7), wherever you open it |
+| Digging through menus to reach your favourite league | Premier League opens by default, and one tap on the chip bar switches league |
+| Not remembering a team's league or exact name | Live search by team or league |
+| Having to open several sites for the table, top scorers and squads | One league page with Matches, Standings, Scorers and Teams tabs |
+| Slow loading every time you come back | Cached responses, so revisiting a tab is instant and does not hit the API again |
+| English-only interfaces | English / Vietnamese switch, remembered between visits |
+
+### Why I built it
+
+It started as a small personal tool to save myself a few clicks a day. It was also a good excuse to practise building a real product end to end: React and Tailwind for the UI, TanStack Query for caching, and a serverless proxy that keeps the API key off the client. If it saves you the same daily detour, it has done its job.
+
+---
+
 ## Screenshots
 
 ### Matches
