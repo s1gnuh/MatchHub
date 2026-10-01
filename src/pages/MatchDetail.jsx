@@ -1,5 +1,6 @@
 ﻿import { Link, useParams } from 'react-router-dom'
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
+import TeamSquad from '../components/TeamSquad.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchMatch } from '../services/api.js'
 import { formatDate, formatTime, statusInfo } from '../utils/helpers.js'
@@ -28,6 +29,7 @@ export default function MatchDetail() {
       <div className="mt-3">
         <AsyncBoundary {...r}>
           {m && (
+            <div className="space-y-6">
             <div className="animate-fade-in rounded-xl bg-card p-6 shadow-sm">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
                 <Link to={`/leagues/${m.competition.code}`} className="font-medium text-muted hover:text-primary">
@@ -52,6 +54,16 @@ export default function MatchDetail() {
                   {m.referees?.length > 0 && <div><dt className="text-muted">{t('md.referee')}</dt><dd className="font-medium">{m.referees[0].name}</dd></div>}
                 </dl>
               )}
+            </div>
+
+            {/* Squads of both teams, side by side on desktop, stacked on mobile */}
+            <div className="animate-fade-in">
+              <h2 className="mb-3 text-xl font-extrabold">{t('md.squads')}</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <TeamSquad team={m.homeTeam} />
+                <TeamSquad team={m.awayTeam} />
+              </div>
+            </div>
             </div>
           )}
         </AsyncBoundary>
