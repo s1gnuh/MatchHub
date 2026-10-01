@@ -18,9 +18,31 @@ Responsive football schedule app built with React 18, Vite, TailwindCSS and Axio
 - Skeleton loaders, friendly error messages with retry
 - 10-minute `sessionStorage` cache to stay under the free-tier limit (10 req/min)
 
+## Deploy to GitHub Pages
+
+GitHub Pages is static hosting and football-data.org only allows browser requests from `http://localhost`, so the deployed site calls the API through a small free Cloudflare Worker (`worker/`) that adds CORS headers and keeps your API key secret.
+
+1. **Deploy the worker** (needs a free Cloudflare account):
+   ```
+   cd worker
+   npx wrangler login
+   npx wrangler secret put FOOTBALL_DATA_KEY   # paste your football-data.org key
+   npx wrangler deploy                          # prints https://matchhub-api.<you>.workers.dev
+   ```
+   `ALLOWED_ORIGINS` in `worker/wrangler.toml` must contain your Pages origin (default `https://s1gnuh.github.io`).
+2. **Repo settings → Pages → Source: GitHub Actions.**
+3. **Repo settings → Secrets and variables → Actions → Variables**, add:
+   - `VITE_API_BASE_URL` = the worker URL (no trailing slash)
+   - `VITE_KEYLESS` = `true`
+4. Push to `main`: `.github/workflows/deploy.yml` builds and publishes to `https://<user>.github.io/MatchHub/`.
+
+The app uses `HashRouter` (URLs look like `/#/leagues/PL`) because Pages has no SPA fallback, and a relative Vite `base`, so it works from any sub-path.
+
+Without a worker you can instead add `VITE_API_KEY` as an Actions secret and leave `VITE_KEYLESS` unset, but the browser will be blocked by CORS and the key would be public in the bundle, so this is not recommended.
 ## Deploy to Vercel
 
 Import the repo, then add `VITE_API_BASE_URL=/api` (proxied by `vercel.json`) and `VITE_API_KEY` as environment variables. Build command `npm run build`, output `dist`. `vercel.json` handles SPA routing.
 
 > Note: the API key is embedded in the client bundle. This is fine for the free tier, but use a serverless proxy if you need to keep it private.
+
 

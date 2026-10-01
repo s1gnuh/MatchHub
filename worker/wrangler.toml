@@ -1,0 +1,7 @@
+name = "matchhub-api"
+main = "index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Comma-separated origins allowed to call this proxy (origin only: no path, no trailing slash).
+ALLOWED_ORIGINS = "https://s1gnuh.github.io,http://localhost:5173"

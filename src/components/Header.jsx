@@ -34,7 +34,7 @@ export default function Header() {
     <header className="sticky top-0 z-20 border-b border-line bg-black/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
         <Link to="/" aria-label="MatchHub home" className="group flex items-center gap-2.5">
-          <img src="/logo.svg" alt="" className="h-9 w-9 transition duration-500 group-hover:rotate-[360deg]" />
+          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" className="h-9 w-9 transition duration-500 group-hover:rotate-[360deg]" />
           <span className="-skew-x-6 rounded-lg bg-white px-3 py-1 font-logo text-2xl font-black italic leading-none tracking-tight shadow-lg shadow-primary/10 transition duration-300 group-hover:shadow-primary/40">
             <span className="text-black">Match</span>
             <span className="text-[#f59e0b]">Hub</span>
@@ -61,3 +61,4 @@ export default function Header() {
     </header>
   )
 }
+

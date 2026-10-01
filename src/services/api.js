@@ -3,7 +3,10 @@ import { apiDate } from '../utils/helpers.js'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.football-data.org/v4'
 const API_KEY = import.meta.env.VITE_API_KEY
-const hasKey = API_KEY && API_KEY !== 'your_api_key_here'
+// KEYLESS=true: requests go through a proxy (see /worker) that holds the API key server-side,
+// so no key is needed (or exposed) in the browser bundle.
+const KEYLESS = import.meta.env.VITE_KEYLESS === 'true'
+const hasKey = KEYLESS || (API_KEY && API_KEY !== 'your_api_key_here')
 
 // Free tier allows 10 requests/min, so responses are cached for 10 minutes.
 const CACHE_TTL = 10 * 60 * 1000
@@ -11,7 +14,7 @@ const CACHE_TTL = 10 * 60 * 1000
 const client = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
-  headers: { 'X-Auth-Token': API_KEY || '' },
+  headers: KEYLESS ? {} : { 'X-Auth-Token': API_KEY || '' },
 })
 
 /** Read a non-expired entry from sessionStorage (survives reloads, not tabs). */
