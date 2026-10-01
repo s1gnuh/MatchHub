@@ -25,10 +25,12 @@ const client = axios.create({
   headers: API_KEY ? { 'X-Auth-Token': API_KEY } : {},
 })
 
-/** Read a non-expired entry from sessionStorage (survives reloads, not tabs). */
+const PREFIX = 'matchhub:'
+
+/** Read an entry from localStorage (survives reloads and offline starts). Pass ttl = Infinity to accept stale data. */
 function readCache(key, ttl) {
   try {
-    const raw = sessionStorage.getItem(key)
+    const raw = localStorage.getItem(key)
     if (!raw) return null
     const { time, data } = JSON.parse(raw)
     return Date.now() - time < ttl ? data : null
@@ -38,10 +40,15 @@ function readCache(key, ttl) {
 }
 
 function writeCache(key, data) {
+  const value = JSON.stringify({ time: Date.now(), data })
   try {
-    sessionStorage.setItem(key, JSON.stringify({ time: Date.now(), data }))
+    localStorage.setItem(key, value)
   } catch {
-    /* storage full or unavailable – caching is best-effort */
+    // Storage full (day-stamped keys pile up): drop our old entries and retry once. Caching is best-effort.
+    try {
+      Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => localStorage.removeItem(k))
+      localStorage.setItem(key, value)
+    } catch { /* storage unavailable */ }
   }
 }
 
@@ -76,19 +83,28 @@ function allowRequest() {
 }
 
 /** Cached GET. Throws an ApiError. */
-async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(params || {})}`) {
+async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(params || {})}`) {
   if (!hasKey) {
     throw new ApiError('noKey')
   }
   const cached = readCache(cacheKey, cacheTtl(path))
   if (cached) return cached
-  if (!allowRequest()) throw new ApiError('rate', 429)
+  // Offline, timed out or throttled: showing the last known data beats an error screen.
+  const stale = () => readCache(cacheKey, Infinity)
+  if (!allowRequest()) {
+    const old = stale()
+    if (old) return old
+    throw new ApiError('rate', 429)
+  }
   try {
     const { data } = await client.get(path, { params })
     writeCache(cacheKey, data)
     return data
   } catch (err) {
-    throw toApiError(err)
+    const apiErr = toApiError(err)
+    const old = apiErr.code === 'auth' ? null : stale()
+    if (old) return old
+    throw apiErr
   }
 }
 

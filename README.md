@@ -82,7 +82,7 @@ Club info, competitions, coach and the full squad grouped by position.
 - **Hanoi time (GMT+7)** for every kickoff time and date, whatever the visitor's timezone.
 - **English / Vietnamese** language switch (remembered between visits).
 - **Black & gold dark UI** inspired by SofaScore, with page transitions, hover effects and skeleton loaders. Animations respect `prefers-reduced-motion`.
-- **Smart caching** with TanStack Query (in memory) and `sessionStorage`, so revisiting a tab does not call the API again.
+- **Smart caching** with TanStack Query (in memory) and `localStorage`, so revisiting a tab does not call the API again, and the last known data is still shown when you are offline or rate-limited.
 - **Rate-limit friendly:** a client-side throttle stops requests before the API's limit and shows a friendly "slow down" message instead of an error.
 - Friendly error states with a retry button.
 
@@ -210,7 +210,7 @@ MatchHub/
 
 The free football-data.org tier allows **10 requests per minute**. MatchHub stays within it by:
 
-1. Keeping fetched data fresh for 10 minutes in memory (TanStack Query) and in `sessionStorage`.
+1. Keeping fetched data fresh for 10 minutes in memory (TanStack Query) and in `localStorage` (squads 24 hours, tables 30 minutes), falling back to the last stored copy when a request fails.
 2. Not refetching when the window regains focus.
 3. Skipping retries on key / rate-limit errors.
 4. Blocking the 10th uncached request within a minute on the client, with a friendly message.

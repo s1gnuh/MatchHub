@@ -19,6 +19,13 @@ const queryClient = new QueryClient({
   },
 })
 
+// Installable PWA: the service worker only runs in production builds, so dev reloads never get stale files.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => { /* optional enhancement */ })
+  })
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

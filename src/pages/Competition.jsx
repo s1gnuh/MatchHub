@@ -38,7 +38,7 @@ export default function Competition() {
         ))}
       </div>
       {tab === 'Matches' && <LeagueMatches code={code} />}
-      {tab === 'Standings' && <DataTab name="standings" loader={fetchStandings} code={code} render={(d) => <Standings standings={d} />} />}
+      {tab === 'Standings' && <DataTab name="standings" loader={fetchStandings} code={code} render={(d) => <Standings standings={d} code={code} />} />}
       {tab === 'Scorers' && <DataTab name="scorers" loader={fetchScorers} code={code} render={(d) => <Scorers scorers={d} />} />}
       {tab === 'Teams' && <DataTab name="teams" loader={fetchTeams} code={code} render={(d) => <TeamGrid teams={d} />} />}
     </>

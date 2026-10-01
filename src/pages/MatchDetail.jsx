@@ -2,6 +2,7 @@
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
 import TeamSquad from '../components/TeamSquad.jsx'
 import Countdown from '../components/Countdown.jsx'
+import MatchInsights from '../components/MatchInsights.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchMatch } from '../services/api.js'
 import { formatDate, formatTime, statusInfo } from '../utils/helpers.js'
@@ -59,6 +60,8 @@ export default function MatchDetail() {
                 </dl>
               )}
             </div>
+
+            <MatchInsights match={m} />
 
             {/* Squads of both teams, side by side on desktop, stacked on mobile */}
             <div className="animate-fade-in">

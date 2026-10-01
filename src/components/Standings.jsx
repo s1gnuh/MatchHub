@@ -1,4 +1,8 @@
 ﻿import { Link } from 'react-router-dom'
+import FormDots from './FormDots.jsx'
+import useApi from '../utils/useApi.js'
+import { fetchCompetitionMatches } from '../services/api.js'
+import { recentForm } from '../utils/form.js'
 import { useLang } from '../utils/i18n.jsx'
 
 // Rank badge: gold / silver / bronze for the podium, plain number otherwise.
@@ -12,8 +16,11 @@ const Crest =({ src }) =>
   src ? <img src={src} alt="" loading="lazy" className="h-6 w-6 object-contain" /> : <span className="h-6 w-6" />
 
 // League table(s). Cup-style competitions return several groups.
-export default function Standings({ standings }) {
+export default function Standings({ standings, code }) {
   const { t } = useLang()
+  // Form comes from the league's match list (same cache as the Matches tab). The table never waits for it
+  // and simply shows no form column content if that request fails.
+  const matches = useApi(['matches', code], () => fetchCompetitionMatches(code), { enabled: Boolean(code) })
   const groups = standings.filter((s) => s.type === 'TOTAL')
   if (!groups.length) return <p className="py-12 text-center text-muted">{t('st.none')}</p>
   return (
@@ -25,12 +32,13 @@ export default function Standings({ standings }) {
         return (
         <div key={g.group || i} className="animate-fade-in overflow-x-auto rounded-xl bg-card shadow-sm">
           {g.group && <h2 className="px-4 pt-4 font-bold">{g.group.replace('_', ' ')}</h2>}
-          <table className="w-full min-w-[480px] text-sm">
+          <table className="w-full min-w-[600px] text-sm">
             <thead className="text-left text-xs uppercase text-muted">
               <tr>
                 <th className="px-3 py-3">#</th><th className="py-3">{t('st.team')}</th>
                 {['P', 'W', 'D', 'L', 'GD'].map((h) => <th key={h} className="px-2 py-3 text-center">{t('st.' + h)}</th>)}
                 <th className="px-3 py-3 text-center">{t('st.Pts')}</th>
+                <th className="px-3 py-3">{t('st.Form')}</th>
               </tr>
             </thead>
             <tbody>
@@ -48,6 +56,7 @@ export default function Standings({ standings }) {
                   <td className="px-2 text-center">{r.lost}</td>
                   <td className="px-2 text-center">{r.goalDifference}</td>
                   <td className="px-3 text-center font-bold">{r.points}</td>
+                  <td className="px-3">{matches.data && <FormDots form={recentForm(matches.data, r.team.id)} />}</td>
                 </tr>
               ))}
             </tbody>
