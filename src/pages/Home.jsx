@@ -42,7 +42,7 @@ function featuredMatch(matches) {
 
 // Matches section, for both "/" and "/matches/:id".
 // Phones / tablets: the list page, or the match page when a match is open (as before).
-// Desktop (lg+): one full-width screen: match list | selected match | league table (xl+), each column scrolling
+// Desktop (lg+): one full-width screen: match list | selected match | league table (1360px+), each column scrolling
 // on its own. Opening a match from the list costs no request: its data comes from the list already loaded.
 export default function Home() {
   const { t } = useLang()
@@ -103,7 +103,7 @@ export default function Home() {
         {chips}
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(340px,400px)_minmax(0,1fr)] xl:grid-cols-[minmax(360px,420px)_minmax(0,1fr)_minmax(290px,340px)]">
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(300px,350px)_minmax(0,1fr)] min-[1360px]:grid-cols-[minmax(310px,360px)_minmax(0,1fr)_minmax(360px,420px)]">
         <aside className="flex min-h-0 flex-col rounded-xl bg-card shadow-sm">
           <div className="shrink-0 p-3"><SearchFilter search={search} onSearch={setSearch} /></div>
           <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
@@ -127,7 +127,7 @@ export default function Home() {
               : <p className="py-16 text-center text-muted">{t('shell.none')}</p>}
         </section>
 
-        <aside className="hidden min-h-0 overflow-y-auto xl:block">
+        <aside className="hidden min-h-0 overflow-y-auto min-[1360px]:block">
           <StandingsMini code={code} highlight={highlight} />
         </aside>
       </div>

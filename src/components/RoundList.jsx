@@ -21,7 +21,7 @@ export default function RoundList({ rounds }) {
             <div className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2 ${dense ? 'mb-3' : 'mb-4'}`}>
               <h2 className={dense ? 'text-base font-extrabold' : 'text-xl font-extrabold'}>{r.label}</h2>
               <span className="text-sm text-muted">{range}</span>
-              <span className="ml-auto text-xs text-muted">{t(r.matches.length === 1 ? 'm.one' : 'm.many', { n: r.matches.length })}</span>
+              {!dense && <span className="ml-auto text-xs text-muted">{t(r.matches.length === 1 ? 'm.one' : 'm.many', { n: r.matches.length })}</span>}
             </div>
             <MatchList matches={r.matches} compact />
           </section>

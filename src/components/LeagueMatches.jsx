@@ -104,11 +104,11 @@ export default function LeagueMatches({ code, search = '' }) {
 
         return (
           <>
-            <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
               <div className="flex gap-1 rounded-full bg-subtle p-1">
                 {MODES.map((m) => (
                   <button key={m} onClick={() => switchMode(m)}
-                    className={`rounded-full px-3 py-1.5 text-sm font-semibold capitalize sm:px-4 lg:px-3 2xl:px-4 transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
+                    className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold capitalize sm:px-4 lg:px-3 2xl:px-4 transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
                     {t('m.' + m)}
                   </button>
                 ))}
