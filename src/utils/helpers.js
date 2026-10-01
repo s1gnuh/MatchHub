@@ -1,8 +1,12 @@
 ﻿// Helper functions: date/time formatting, status labels and league colours.
 
+// Locale used for dates; set by LangProvider.
+let locale
+export const setLocale = (l) => { locale = l }
+
 /** "Sat, 3 Oct" in the user's locale/timezone. */
 export const formatDate = (iso) =>
-  new Date(iso).toLocaleDateString(undefined, {
+  new Date(iso).toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -10,7 +14,7 @@ export const formatDate = (iso) =>
 
 /** "20:00" in the user's local timezone. */
 export const formatTime = (iso) =>
-  new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 
 /** Local YYYY-MM-DD key, used to group matches by day. */
 export const dayKey = (iso) => {
@@ -27,16 +31,21 @@ export const apiDate = (offsetDays = 0) => {
 }
 
 const STATUS = {
-  SCHEDULED: { label: 'Scheduled', cls: 'bg-gray-100 text-gray-600' },
-  TIMED: { label: 'Upcoming', cls: 'bg-blue-50 text-blue-700' },
-  IN_PLAY: { label: 'Live', cls: 'bg-red-100 text-red-700 animate-pulse' },
-  PAUSED: { label: 'Half-time', cls: 'bg-amber-100 text-amber-700' },
-  FINISHED: { label: 'Finished', cls: 'bg-green-100 text-green-700' },
-  POSTPONED: { label: 'Postponed', cls: 'bg-orange-100 text-orange-700' },
-  CANCELLED: { label: 'Cancelled', cls: 'bg-gray-200 text-gray-500' },
-  SUSPENDED: { label: 'Suspended', cls: 'bg-orange-100 text-orange-700' },
+  SCHEDULED: { label: 'Scheduled', cls: 'bg-subtle text-muted' },
+  TIMED: { label: 'Upcoming', cls: 'bg-primary/10 text-primary' },
+  IN_PLAY: { label: 'Live', cls: 'bg-red-500/15 text-red-500 animate-pulse' },
+  PAUSED: { label: 'Half-time', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+  FINISHED: { label: 'FT', cls: 'bg-subtle text-muted' },
+  POSTPONED: { label: 'Postponed', cls: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
+  CANCELLED: { label: 'Cancelled', cls: 'bg-subtle text-muted' },
+  SUSPENDED: { label: 'Suspended', cls: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
 }
-export const statusInfo = (s) => STATUS[s] || { label: s, cls: 'bg-gray-100 text-gray-600' }
+
+/** Badge classes + label; pass the translate function `t` to localise the label. */
+export const statusInfo = (s, t) => {
+  const info = STATUS[s] || { label: s, cls: 'bg-subtle text-muted' }
+  return { ...info, label: t && STATUS[s] ? t('status.' + s) : info.label }
+}
 
 // Stable colour per league code (falls back to blue).
 const LEAGUE_COLORS = {
@@ -52,3 +61,9 @@ const LEAGUE_COLORS = {
   BSA: 'border-lime-500',
 }
 export const leagueColor = (code) => LEAGUE_COLORS[code] || 'border-primary'
+
+/** Translation key ("today" | "tomorrow" | "yesterday") or null for other days. */
+export const relativeDay = (iso) => {
+  const diff = Math.round((new Date(dayKey(iso)) - new Date(dayKey(new Date().toISOString()))) / 86400000)
+  return { 0: 'today', 1: 'tomorrow', '-1': 'yesterday' }[diff] || null
+}

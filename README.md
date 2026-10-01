@@ -20,6 +20,7 @@ Responsive football schedule app built with React 18, Vite, TailwindCSS and Axio
 
 ## Deploy to Vercel
 
-Import the repo, then add `VITE_API_BASE_URL` and `VITE_API_KEY` as environment variables. Build command `npm run build`, output `dist`. `vercel.json` handles SPA routing.
+Import the repo, then add `VITE_API_BASE_URL=/api` (proxied by `vercel.json`) and `VITE_API_KEY` as environment variables. Build command `npm run build`, output `dist`. `vercel.json` handles SPA routing.
 
 > Note: the API key is embedded in the client bundle. This is fine for the free tier, but use a serverless proxy if you need to keep it private.
+

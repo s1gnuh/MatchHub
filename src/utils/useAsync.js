@@ -10,10 +10,11 @@ export default function useAsync(loader, deps) {
     setState({ data: null, loading: true, error: null })
     loader()
       .then((data) => !cancelled && setState({ data, loading: false, error: null }))
-      .catch((e) => !cancelled && setState({ data: null, loading: false, error: e.message }))
+      .catch((e) => !cancelled && setState({ data: null, loading: false, error: e }))
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, attempt])
 
   return { ...state, retry: () => setAttempt((n) => n + 1) }
 }
+

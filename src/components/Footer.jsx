@@ -1,10 +1,15 @@
-﻿export default function Footer() {
+﻿import { useLang } from '../utils/i18n.jsx'
+
+export default function Footer() {
+  const { t } = useLang()
   return (
-    <footer className="border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500">
-      © {new Date().getFullYear()} MatchHub · Data by{' '}
+    <footer className="border-t border-line bg-card py-5 text-center text-sm text-muted">
+      © {new Date().getFullYear()} MatchHub · {t('footer.data')}{' '}
       <a href="https://www.football-data.org" target="_blank" rel="noreferrer" className="text-primary hover:underline">
         football-data.org
       </a>
+      {' · '}{t('footer.by')}{' '}
+      <a href="https://github.com/s1gnuh" target="_blank" rel="noreferrer" className="text-primary hover:underline">s1gnuh</a>
     </footer>
   )
 }

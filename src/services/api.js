@@ -34,21 +34,28 @@ function writeCache(key, data) {
   }
 }
 
-/** Turn axios errors into messages that make sense to end users. */
-function friendlyError(err) {
-  const status = err.response?.status
-  if (status === 429) return 'Rate limit reached (10 requests/min). Please wait a minute and try again.'
-  // football-data.org answers 400 "API token is invalid" for bad keys
-  if (status === 400 || status === 401 || status === 403) return 'Invalid or missing API key. Check VITE_API_KEY in your .env file.'
-  if (err.code === 'ECONNABORTED') return 'The request timed out. Please try again.'
-  if (!err.response) return 'Network error – check your connection (or CORS settings) and retry.'
-  return `Could not load matches (error ${status}). Please try again later.`
+/** Error with a machine-readable code ("noKey" | "rate" | "auth" | "timeout" | "network" | "http"); the UI translates it. */
+export class ApiError extends Error {
+  constructor(code, status) {
+    super(code)
+    this.code = code
+    this.status = status
+  }
 }
 
-/** Cached GET. Throws an Error whose message is safe to show users. */
+function toApiError(err) {
+  const status = err.response?.status
+  if (status === 429) return new ApiError('rate', status)
+  // football-data.org answers 400 "API token is invalid" for bad keys
+  if (status === 400 || status === 401 || status === 403) return new ApiError('auth', status)
+  if (err.code === 'ECONNABORTED') return new ApiError('timeout')
+  if (!err.response) return new ApiError('network')
+  return new ApiError('http', status)
+}
+/** Cached GET. Throws an ApiError. */
 async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(params || {})}`) {
   if (!hasKey) {
-    throw new Error('No API key configured. Copy .env.example to .env and add your Football-Data.org key.')
+    throw new ApiError('noKey')
   }
   const cached = readCache(cacheKey)
   if (cached) return cached
@@ -57,7 +64,7 @@ async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(p
     writeCache(cacheKey, data)
     return data
   } catch (err) {
-    throw new Error(friendlyError(err))
+    throw toApiError(err)
   }
 }
 
@@ -85,3 +92,4 @@ export const fetchStandings = (code) => get(`/competitions/${code}/standings`).t
 export const fetchScorers = (code) => get(`/competitions/${code}/scorers`).then((d) => d.scorers)
 export const fetchTeams = (code) => get(`/competitions/${code}/teams`).then((d) => d.teams)
 export const fetchTeam = (id) => get(`/teams/${id}`)
+
