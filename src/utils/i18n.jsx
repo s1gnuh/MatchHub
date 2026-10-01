@@ -6,8 +6,7 @@ const KEY = 'matchhub-lang'
 const DICT = {
   en: {
     'nav.matches': 'Matches', 'nav.leagues': 'Leagues',
-    'home.all': 'All', 'home.allLeagues': 'All leagues',
-    'home.sub': '{country} · fixtures & results', 'home.next7': 'Matches in the next 7 days',
+    'home.sub': '{country} · fixtures & results',
     'home.tz': 'All times are Hanoi time (GMT+7)',
     'search.ph': 'Search team or league…', 'search.label': 'Search by team or league', 'search.clear': 'Clear search',
     'm.upcoming': 'Upcoming', 'm.results': 'Results',
@@ -24,7 +23,7 @@ const DICT = {
     retry: 'Try again', loading: 'Loading', 'cd.in': 'in {t}', 'scroll.top': 'Back to top',
     'mi.form': 'Recent form', 'mi.formNote': 'Last 5 finished matches in this competition, oldest to newest.',
     'mi.h2h': 'Head to head', 'mi.noH2h': 'No earlier meetings this season in this competition.', 'mi.draws': 'Draws',
-    'st.GF': 'GF', 'st.GA': 'GA', 'st.Form': 'Form',
+    'st.GF': 'GF', 'st.GA': 'GA', 'st.Form': 'Form', 'mc.rank': 'Position {n} in the table',
     'stage.GROUP_STAGE': 'Group stage', 'stage.LEAGUE_STAGE': 'League stage', 'stage.PLAYOFFS': 'Play-offs',
     'stage.LAST_32': 'Round of 32', 'stage.LAST_16': 'Round of 16', 'stage.QUARTER_FINALS': 'Quarter-finals',
     'stage.SEMI_FINALS': 'Semi-finals', 'stage.FINAL': 'Final', 'stage.THIRD_PLACE': 'Third place',
@@ -56,8 +55,7 @@ const DICT = {
   },
   vi: {
     'nav.matches': 'Trận đấu', 'nav.leagues': 'Giải đấu',
-    'home.all': 'Tất cả', 'home.allLeagues': 'Tất cả giải đấu',
-    'home.sub': '{country} · lịch thi đấu & kết quả', 'home.next7': 'Các trận trong 7 ngày tới',
+    'home.sub': '{country} · lịch thi đấu & kết quả',
     'home.tz': 'Tất cả giờ theo giờ Hà Nội (GMT+7)',
     'search.ph': 'Tìm đội bóng hoặc giải đấu…', 'search.label': 'Tìm theo đội bóng hoặc giải đấu', 'search.clear': 'Xoá tìm kiếm',
     'm.upcoming': 'Sắp diễn ra', 'm.results': 'Kết quả',
@@ -74,7 +72,7 @@ const DICT = {
     retry: 'Thử lại', loading: 'Đang tải', 'cd.in': 'sau {t}', 'scroll.top': 'Lên đầu trang',
     'mi.form': 'Phong độ gần đây', 'mi.formNote': '5 trận gần nhất đã kết thúc trong giải này, từ cũ đến mới.',
     'mi.h2h': 'Đối đầu', 'mi.noH2h': 'Mùa này chưa có lần gặp nhau nào ở giải đấu này.', 'mi.draws': 'Hòa',
-    'st.GF': 'BT', 'st.GA': 'BB', 'st.Form': 'Phong độ',
+    'st.GF': 'BT', 'st.GA': 'BB', 'st.Form': 'Phong độ', 'mc.rank': 'Hạng {n} trên bảng xếp hạng',
     'stage.GROUP_STAGE': 'Vòng bảng', 'stage.LEAGUE_STAGE': 'Vòng league', 'stage.PLAYOFFS': 'Play-off',
     'stage.LAST_32': 'Vòng 1/16', 'stage.LAST_16': 'Vòng 1/8', 'stage.QUARTER_FINALS': 'Tứ kết',
     'stage.SEMI_FINALS': 'Bán kết', 'stage.FINAL': 'Chung kết', 'stage.THIRD_PLACE': 'Tranh hạng ba',

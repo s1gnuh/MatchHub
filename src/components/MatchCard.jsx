@@ -1,10 +1,11 @@
 ﻿import { Link } from 'react-router-dom'
 import Countdown, { startsSoon } from './Countdown.jsx'
+import useTablePositions from '../utils/useTablePositions.js'
 import { useLang } from '../utils/i18n.jsx'
 import { formatTime, statusInfo, leagueColor, stageLabel, durationBadge } from '../utils/helpers.js'
 
 // One team row: crest + name + score.
-function TeamRow({ team, score, bold }) {
+function TeamRow({ team, score, bold, rank, rankTitle }) {
   return (
     <div className="flex items-center gap-3">
       {team.crest ? (
@@ -14,6 +15,9 @@ function TeamRow({ team, score, bold }) {
       )}
       <span className={`flex-1 truncate text-sm ${bold ? 'font-bold' : 'font-medium'}`}>{team.shortName || team.name}</span>
       {score != null && <span className={`w-5 text-right text-sm tabular-nums ${bold ? 'font-bold' : ''}`}>{score}</span>}
+      {score == null && rank != null && (
+        <span title={rankTitle} className="rounded bg-subtle px-1.5 text-[11px] font-semibold tabular-nums text-muted">#{rank}</span>
+      )}
     </div>
   )
 }
@@ -31,6 +35,9 @@ export default function MatchCard({ match, index = 0, today = false }) {
   const awayWon = played && (score.winner ? score.winner === 'AWAY_TEAM' : full.away > full.home)
   const extra = played ? durationBadge(score, t) : null
   const stage = stageLabel(match.stage, t)
+  // League position of each team, shown until the match is finished (current table, not the one at kickoff).
+  const positions = useTablePositions(competition?.code)
+  const rankOf = (team) => (status === 'FINISHED' ? null : positions?.get(team.id) ?? null)
   const soon = !played && !live && (status === 'TIMED' || status === 'SCHEDULED') && startsSoon(utcDate)
 
   return (
@@ -58,8 +65,8 @@ export default function MatchCard({ match, index = 0, today = false }) {
         </div>
         <div className="min-w-0 flex-1 space-y-2 px-4 py-3">
           <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted">{competition?.name}{stage && ` · ${stage}`}</p>
-          <TeamRow team={homeTeam} score={played ? full.home : null} bold={homeWon} />
-          <TeamRow team={awayTeam} score={played ? full.away : null} bold={awayWon} />
+          <TeamRow team={homeTeam} score={played ? full.home : null} bold={homeWon} rank={rankOf(homeTeam)} rankTitle={t('mc.rank', { n: rankOf(homeTeam) })} />
+          <TeamRow team={awayTeam} score={played ? full.away : null} bold={awayWon} rank={rankOf(awayTeam)} rankTitle={t('mc.rank', { n: rankOf(awayTeam) })} />
         </div>
       </div>
     </Link>

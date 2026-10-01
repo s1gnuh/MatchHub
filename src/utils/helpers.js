@@ -42,9 +42,6 @@ export const formatTime = (iso) =>
 export const dayKey = (iso) =>
   new Date(iso).toLocaleDateString('en-CA', { timeZone: TIME_ZONE })
 
-/** YYYY-MM-DD (Hanoi date) for API date params, offset by N days from today. */
-export const apiDate = (offsetDays = 0) => dayKey(new Date(Date.now() + offsetDays * 86400000))
-
 const STATUS = {
   SCHEDULED: { label: 'Scheduled', cls: 'bg-subtle text-muted' },
   TIMED: { label: 'Upcoming', cls: 'bg-primary/10 text-primary' },

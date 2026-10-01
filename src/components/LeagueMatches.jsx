@@ -3,10 +3,11 @@ import AsyncBoundary from './AsyncBoundary.jsx'
 import MatchList from './MatchList.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
-import { fetchMatches, fetchCompetitionMatches } from '../services/api.js'
+import { fetchCompetitionMatches } from '../services/api.js'
 import { stageLabel } from '../utils/helpers.js'
 
 const UPCOMING = ['SCHEDULED', 'TIMED', 'IN_PLAY', 'PAUSED']
+const MODES = ['upcoming', 'results', 'rounds']
 const LEAGUE_STAGES = ['REGULAR_SEASON', 'LEAGUE_STAGE', 'GROUP_STAGE'] // stages where "Matchday N" makes sense
 
 /** Rounds of a competition ("Matchday 1", "Quarter-finals"…), in kickoff order, built from its match list. */
@@ -33,25 +34,22 @@ function buildRounds(matches, t) {
   return rounds
 }
 
-// Matches of one competition (or code "ALL" = next 7 days across leagues),
-// with Upcoming / Results / Rounds views, optional text search and a result count.
+// Matches of one competition with Upcoming / Results / Rounds views, optional text search and a result count.
 export default function LeagueMatches({ code, search = '' }) {
   const { t } = useLang()
-  const modes = code === 'ALL' ? ['upcoming', 'results'] : ['upcoming', 'results', 'rounds']
   const [mode, setMode] = useState('upcoming')
-  const activeMode = modes.includes(mode) ? mode : 'upcoming'
   // Slide direction of the last mode toggle; reset when the league changes (plain fade then).
   const [nav, setNav] = useState({ dir: null, code })
   const dir = nav.code === code ? nav.dir : null
   const enter = dir === 'right' ? 'animate-slide-in-right' : dir === 'left' ? 'animate-slide-in-left' : 'animate-fade-in'
   const switchMode = (m) => {
-    if (m === activeMode) return
-    setNav({ dir: modes.indexOf(m) > modes.indexOf(activeMode) ? 'right' : 'left', code })
+    if (m === mode) return
+    setNav({ dir: MODES.indexOf(m) > MODES.indexOf(mode) ? 'right' : 'left', code })
     setMode(m)
   }
   // Round chosen in the Rounds view (per league); null means "the current round".
   const [pick, setPick] = useState({ code, key: null })
-  const r = useApi(['matches', code], () => (code === 'ALL' ? fetchMatches() : fetchCompetitionMatches(code)))
+  const r = useApi(['matches', code], () => fetchCompetitionMatches(code))
 
   return (
     <AsyncBoundary {...r}>
@@ -62,8 +60,8 @@ export default function LeagueMatches({ code, search = '' }) {
           !q || [m.homeTeam?.name, m.awayTeam?.name, m.homeTeam?.shortName, m.awayTeam?.shortName, m.competition?.name]
             .some((s) => s?.toLowerCase().includes(q))
 
-        let list, roundBar = null, listKey = `${code}-${activeMode}`
-        if (activeMode === 'rounds') {
+        let list, roundBar = null, listKey = `${code}-${mode}`
+        if (mode === 'rounds') {
           const rounds = buildRounds(sorted, t)
           // Default to the first round that still has unplayed matches, else the last one.
           const current = rounds.find((x) => x.matches.some((m) => m.status !== 'FINISHED')) || rounds[rounds.length - 1]
@@ -89,16 +87,16 @@ export default function LeagueMatches({ code, search = '' }) {
           let upcoming = sorted.filter((m) => UPCOMING.includes(m.status) && match(m))
           let results = sorted.filter((m) => m.status === 'FINISHED' && match(m))
           if (!q) { upcoming = upcoming.slice(0, 30); results = results.slice(-30) }
-          list = activeMode === 'upcoming' ? upcoming : results
+          list = mode === 'upcoming' ? upcoming : results
         }
 
         return (
           <>
             <div className="mb-5 flex items-center justify-between gap-3">
               <div className="flex gap-1 rounded-full bg-subtle p-1">
-                {modes.map((m) => (
+                {MODES.map((m) => (
                   <button key={m} onClick={() => switchMode(m)}
-                    className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition duration-300 ${activeMode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
+                    className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
                     {t('m.' + m)}
                   </button>
                 ))}

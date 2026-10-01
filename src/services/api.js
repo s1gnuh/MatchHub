@@ -1,5 +1,4 @@
 ﻿import axios from 'axios'
-import { apiDate } from '../utils/helpers.js'
 
 // Default "/api": proxied by Vite in dev and by the serverless function in /api on Vercel.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
@@ -110,10 +109,6 @@ async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(p
     throw apiErr
   }
 }
-
-/** Matches for the next `days` days (free tier limits range to 10 days). */
-export const fetchMatches = (days = 7) =>
-  get('/matches', { dateFrom: apiDate(0), dateTo: apiDate(days) }).then((d) => d.matches)
 
 /** Free-tier competitions (code + name) used for navigation. */
 export const COMPETITIONS = [
