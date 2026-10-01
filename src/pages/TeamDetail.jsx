@@ -2,7 +2,7 @@
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchTeam } from '../services/api.js'
-import { ageFrom } from '../utils/helpers.js'
+import { ageFrom, competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 
 // Team profile: info, coach and squad grouped by position.
@@ -39,7 +39,7 @@ export default function TeamDetail() {
               {t.runningCompetitions?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {t.runningCompetitions.map((c) => (
-                    <Link key={c.id} to={`/leagues/${c.code}`} className="rounded-full bg-card px-3 py-1 text-sm shadow-sm hover:bg-subtle">{c.name}</Link>
+                    <Link key={c.id} to={`/leagues/${c.code}`} className="rounded-full bg-card px-3 py-1 text-sm shadow-sm hover:bg-subtle">{competitionName(c, tr)}</Link>
                   ))}
                 </div>
               )}

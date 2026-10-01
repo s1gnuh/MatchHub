@@ -23,7 +23,9 @@ export default function StandingsMini({ code, highlight = [] }) {
       {groups.map((g, i) => {
         const podium = g.table.length > 8 ? 3 : 2
         return (
-          <table key={g.group || i} className="mb-2 w-full text-xs">
+          <table key={g.group || i} className="mb-2 w-full table-fixed text-xs">
+            {/* fixed numeric columns so longer headers (e.g. Vietnamese "Trận", "Điểm") never squeeze the team name */}
+            <colgroup><col className="w-9" /><col /><col className="w-11" /><col className="w-9" /><col className="w-12" /></colgroup>
             {groups.length > 1 && g.group && <caption className="px-1 pb-1 text-left text-xs font-bold text-muted">{g.group.replace('_', ' ')}</caption>}
             <thead className="text-left uppercase text-muted">
               <tr>
@@ -39,7 +41,7 @@ export default function StandingsMini({ code, highlight = [] }) {
                 <tr key={row.team.id}
                   className={`border-t border-line ${highlight.includes(row.team.id) ? 'bg-primary/15' : row.position === 1 && podium === 3 ? 'bg-primary/5' : ''}`}>
                   <td className="py-1 pl-1"><Rank n={row.position} podium={podium} /></td>
-                  <td className="max-w-0 py-1">
+                  <td className="py-1">
                     <Link to={`/teams/${row.team.id}`} className="flex items-center gap-1.5 hover:text-primary">
                       {row.team.crest && <img src={row.team.crest} alt="" loading="lazy" className="h-4 w-4 shrink-0 object-contain" />}
                       <span className="truncate font-medium">{row.team.shortName || row.team.name}</span>

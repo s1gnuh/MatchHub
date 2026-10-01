@@ -4,7 +4,7 @@ import Countdown, { startsSoon } from './Countdown.jsx'
 import { ListContext } from './ListContext.js'
 import useTablePositions from '../utils/useTablePositions.js'
 import { useLang } from '../utils/i18n.jsx'
-import { formatTime, statusInfo, leagueColor, stageLabel, durationBadge } from '../utils/helpers.js'
+import { formatTime, statusInfo, leagueColor, stageLabel, durationBadge, competitionName } from '../utils/helpers.js'
 
 // One team row: crest + name + score (or table position before the match is decided).
 function TeamRow({ team, score, bold, rank, rankTitle, small }) {
@@ -95,7 +95,7 @@ export default function MatchCard({ match, index = 0, today = false }) {
       <div className="flex items-stretch">
         <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-1 border-r border-line px-2 py-3 text-center">{status_}</div>
         <div className="min-w-0 flex-1 space-y-2 px-4 py-3">
-          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted">{competition?.name}{stage && ` · ${stage}`}</p>
+          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted">{competitionName(competition, t)}{stage && ` · ${stage}`}</p>
           {teams(false)}
         </div>
       </div>

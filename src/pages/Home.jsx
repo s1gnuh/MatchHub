@@ -9,6 +9,7 @@ import MatchDetail from './MatchDetail.jsx'
 import useApi from '../utils/useApi.js'
 import useMatch from '../utils/useMatch.js'
 import useMediaQuery, { WIDE } from '../utils/useMediaQuery.js'
+import { competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 import { COMPETITIONS, fetchCompetitionMatches } from '../services/api.js'
 
@@ -64,7 +65,7 @@ export default function Home() {
 
   const title = (
     <>
-      <h1 className={`font-extrabold tracking-tight ${wide ? 'text-2xl' : 'mb-1 text-3xl'}`}>{current.name}</h1>
+      <h1 className={`font-extrabold tracking-tight ${wide ? 'text-2xl' : 'mb-1 text-3xl'}`}>{competitionName(current, t)}</h1>
       <p className={`text-muted ${wide ? 'text-sm' : 'mb-5'}`}>
         {t('home.sub', { country: t('country.' + current.country) })} · <span className="whitespace-nowrap">{t('home.tz')}</span>
       </p>
@@ -73,7 +74,7 @@ export default function Home() {
   const chips = (
     <div className={`no-scrollbar flex gap-2 overflow-x-auto pb-1 ${wide ? '' : '-mx-4 mb-4 px-4 sm:mx-0 sm:px-0'}`}>
       {COMPETITIONS.map((c) => (
-        <Chip key={c.code} emblem={c.emblem} label={c.name} active={code === c.code} onClick={() => pick(c.code)} />
+        <Chip key={c.code} emblem={c.emblem} label={competitionName(c, t)} active={code === c.code} onClick={() => pick(c.code)} />
       ))}
     </div>
   )

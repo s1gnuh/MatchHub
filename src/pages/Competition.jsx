@@ -6,6 +6,7 @@ import Standings from '../components/Standings.jsx'
 import Scorers from '../components/Scorers.jsx'
 import TeamGrid from '../components/TeamGrid.jsx'
 import NotFound from './NotFound.jsx'
+import { competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
 import { COMPETITIONS, fetchCompetition, fetchStandings, fetchScorers, fetchTeams } from '../services/api.js'
@@ -60,7 +61,7 @@ export default function Competition() {
   return (
     <>
       <Link to="/leagues" className="text-sm text-primary hover:underline">{t('comp.back')}</Link>
-      <h1 className="mb-4 mt-1 text-3xl font-extrabold tracking-tight">{comp.name}</h1>
+      <h1 className="mb-4 mt-1 text-3xl font-extrabold tracking-tight">{competitionName(comp, t)}</h1>
       <div className="no-scrollbar mb-6 flex gap-1 overflow-x-auto border-b border-line">
         {TABS.map((tb) => (
           <button key={tb} onClick={() => setTab(tb)}

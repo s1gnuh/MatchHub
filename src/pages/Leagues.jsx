@@ -1,7 +1,7 @@
 ﻿import { Link } from 'react-router-dom'
 import { useLang } from '../utils/i18n.jsx'
 import { COMPETITIONS } from '../services/api.js'
-import { leagueColor } from '../utils/helpers.js'
+import { leagueColor, competitionName } from '../utils/helpers.js'
 
 // Grid of supported leagues; each links to its detail page.
 export default function Leagues() {
@@ -22,7 +22,7 @@ export default function Leagues() {
                 onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-xl font-bold">{c.name}</p>
+              <p className="truncate text-xl font-bold">{competitionName(c, t)}</p>
               <p className="text-sm text-muted">{t('country.' + c.country)} · {c.code}</p>
             </div>
           </Link>

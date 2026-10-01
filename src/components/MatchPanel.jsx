@@ -6,7 +6,7 @@ import Countdown from './Countdown.jsx'
 import MatchInsights from './MatchInsights.jsx'
 import LazyMount from './LazyMount.jsx'
 import useMatch from '../utils/useMatch.js'
-import { formatDate, formatTime, statusInfo, stageLabel } from '../utils/helpers.js'
+import { formatDate, formatTime, statusInfo, stageLabel, competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 
 const Side = ({ team }) => (
@@ -40,7 +40,7 @@ export default function MatchPanel({ id, initial = null, squadsOnDemand = false 
           <div className="animate-fade-in rounded-xl bg-card p-5 shadow-sm sm:p-6">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
               <Link to={`/leagues/${m.competition.code}`} className="font-medium text-muted hover:text-primary">
-                {[m.competition.name, stageLabel(m.stage, t), showMatchday && t('md.matchday', { n: m.matchday })].filter(Boolean).join(' · ')}
+                {[competitionName(m.competition, t), stageLabel(m.stage, t), showMatchday && t('md.matchday', { n: m.matchday })].filter(Boolean).join(' · ')}
               </Link>
               <span className={`rounded-full px-3 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
             </div>

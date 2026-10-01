@@ -4,7 +4,7 @@ import RoundList from './RoundList.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchCompetitionMatches } from '../services/api.js'
-import { stageLabel } from '../utils/helpers.js'
+import { stageLabel, competitionName } from '../utils/helpers.js'
 
 // Every match lands in exactly one list: decided matches under Results, everything else (scheduled, live,
 // postponed, suspended, cancelled) under Upcoming, so no fixture of the season goes missing.
@@ -68,7 +68,7 @@ export default function LeagueMatches({ code, search = '' }) {
         const q = search.trim().toLowerCase()
         const sorted = [...r.data].sort((a, b) => a.utcDate.localeCompare(b.utcDate))
         const match = (m) =>
-          !q || [m.homeTeam?.name, m.awayTeam?.name, m.homeTeam?.shortName, m.awayTeam?.shortName, m.competition?.name]
+          !q || [m.homeTeam?.name, m.awayTeam?.name, m.homeTeam?.shortName, m.awayTeam?.shortName, m.competition?.name, competitionName(m.competition, t)]
             .some((s) => s?.toLowerCase().includes(q))
 
         const rounds = buildRounds(sorted, t)

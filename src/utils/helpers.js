@@ -74,6 +74,13 @@ const LEAGUE_COLORS = {
 }
 export const leagueColor = (code) => LEAGUE_COLORS[code] || 'border-primary'
 
+/** Localised competition name ("Ngoại hạng Anh"): the 'league.<code>' string, else the API's own name. */
+export const competitionName = (c, t) => {
+  if (!c) return ''
+  const s = c.code ? t('league.' + c.code) : null
+  return s && s !== c.code ? s : c.name
+}
+
 /** Translation key ("today" | "tomorrow" | "yesterday") or null for other days. */
 export const relativeDay = (iso) => {
   const diff = Math.round((new Date(dayKey(iso)) - new Date(dayKey(new Date().toISOString()))) / 86400000)
