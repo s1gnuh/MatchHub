@@ -1,4 +1,5 @@
-﻿import { formatTime, statusInfo, leagueColor } from '../utils/helpers.js'
+﻿import { Link } from 'react-router-dom'
+import { formatTime, statusInfo, leagueColor } from '../utils/helpers.js'
 
 // One team: crest (if provided) above name.
 function Team({ team }) {
@@ -22,6 +23,7 @@ export default function MatchCard({ match }) {
   const hasScore = full && full.home != null
 
   return (
+    <Link to={`/matches/${match.id}`} className="block">
     <article
       className={`animate-fade-in rounded-xl border-t-4 bg-white p-4 shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-lg ${leagueColor(competition?.code)}`}
     >
@@ -46,5 +48,7 @@ export default function MatchCard({ match }) {
         <Team team={awayTeam} />
       </div>
     </article>
+    </Link>
   )
 }
+

@@ -1,6 +1,9 @@
-﻿import { Link } from 'react-router-dom'
+﻿import { Link, NavLink } from 'react-router-dom'
 
-// Sticky top bar with logo and tagline.
+const link = ({ isActive }) =>
+  `rounded-lg px-3 py-1.5 text-sm font-medium transition ${isActive ? 'bg-white/20' : 'hover:bg-white/10'}`
+
+// Sticky top bar with logo and navigation.
 export default function Header() {
   return (
     <header className="sticky top-0 z-10 bg-primary text-white shadow">
@@ -9,7 +12,10 @@ export default function Header() {
           <img src="/logo.svg" alt="" className="h-8 w-8" />
           Match<span className="text-accent">Hub</span>
         </Link>
-        <span className="hidden text-sm text-blue-100 sm:block">Your football fixtures, simplified</span>
+        <nav className="flex gap-1">
+          <NavLink to="/" end className={link}>Matches</NavLink>
+          <NavLink to="/leagues" className={link}>Leagues</NavLink>
+        </nav>
       </div>
     </header>
   )

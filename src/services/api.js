@@ -38,35 +38,50 @@ function writeCache(key, data) {
 function friendlyError(err) {
   const status = err.response?.status
   if (status === 429) return 'Rate limit reached (10 requests/min). Please wait a minute and try again.'
-  if (status === 401 || status === 403) return 'Invalid or missing API key. Check VITE_API_KEY in your .env file.'
+  // football-data.org answers 400 "API token is invalid" for bad keys
+  if (status === 400 || status === 401 || status === 403) return 'Invalid or missing API key. Check VITE_API_KEY in your .env file.'
   if (err.code === 'ECONNABORTED') return 'The request timed out. Please try again.'
   if (!err.response) return 'Network error – check your connection (or CORS settings) and retry.'
   return `Could not load matches (error ${status}). Please try again later.`
 }
 
-/**
- * Fetch matches for the next `days` days (free tier limits range to 10 days).
- * Returns the `matches` array from Football-Data.org.
- */
-export async function fetchMatches(days = 7) {
+/** Cached GET. Throws an Error whose message is safe to show users. */
+async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(params || {})}`) {
   if (!hasKey) {
-    const err = new Error('No API key configured. Copy .env.example to .env and add your Football-Data.org key.')
-    err.userMessage = err.message
-    throw err
+    throw new Error('No API key configured. Copy .env.example to .env and add your Football-Data.org key.')
   }
-  const params = { dateFrom: apiDate(0), dateTo: apiDate(days) }
-  const key = `matchhub:${params.dateFrom}:${params.dateTo}`
-
-  const cached = readCache(key)
+  const cached = readCache(cacheKey)
   if (cached) return cached
-
   try {
-    const { data } = await client.get('/matches', { params })
-    writeCache(key, data.matches)
-    return data.matches
+    const { data } = await client.get(path, { params })
+    writeCache(cacheKey, data)
+    return data
   } catch (err) {
-    const wrapped = new Error(friendlyError(err))
-    wrapped.userMessage = wrapped.message
-    throw wrapped
+    throw new Error(friendlyError(err))
   }
 }
+
+/** Matches for the next `days` days (free tier limits range to 10 days). */
+export const fetchMatches = (days = 7) =>
+  get('/matches', { dateFrom: apiDate(0), dateTo: apiDate(days) }).then((d) => d.matches)
+
+/** Free-tier competitions (code + name) used for navigation. */
+export const COMPETITIONS = [
+  { code: 'PL', name: 'Premier League', country: 'England' },
+  { code: 'PD', name: 'La Liga', country: 'Spain' },
+  { code: 'SA', name: 'Serie A', country: 'Italy' },
+  { code: 'BL1', name: 'Bundesliga', country: 'Germany' },
+  { code: 'FL1', name: 'Ligue 1', country: 'France' },
+  { code: 'CL', name: 'Champions League', country: 'Europe' },
+  { code: 'DED', name: 'Eredivisie', country: 'Netherlands' },
+  { code: 'PPL', name: 'Primeira Liga', country: 'Portugal' },
+  { code: 'ELC', name: 'Championship', country: 'England' },
+  { code: 'BSA', name: 'Série A', country: 'Brazil' },
+]
+
+export const fetchCompetitionMatches = (code) => get(`/competitions/${code}/matches`).then((d) => d.matches)
+export const fetchMatch = (id) => get(`/matches/${id}`)
+export const fetchStandings = (code) => get(`/competitions/${code}/standings`).then((d) => d.standings)
+export const fetchScorers = (code) => get(`/competitions/${code}/scorers`).then((d) => d.scorers)
+export const fetchTeams = (code) => get(`/competitions/${code}/teams`).then((d) => d.teams)
+export const fetchTeam = (id) => get(`/teams/${id}`)

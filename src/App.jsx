@@ -2,6 +2,10 @@
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
+import Leagues from './pages/Leagues.jsx'
+import Competition from './pages/Competition.jsx'
+import MatchDetail from './pages/MatchDetail.jsx'
+import TeamDetail from './pages/TeamDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 // App shell: sticky header, routed content, footer.
@@ -11,7 +15,7 @@ export default function App() {
       <Header />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home />} /><Route path="/leagues" element={<Leagues />} /><Route path="/leagues/:code" element={<Competition />} /><Route path="/matches/:id" element={<MatchDetail />} /><Route path="/teams/:id" element={<TeamDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
@@ -19,3 +23,4 @@ export default function App() {
     </div>
   )
 }
+

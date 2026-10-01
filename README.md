@@ -13,6 +13,8 @@ Responsive football schedule app built with React 18, Vite, TailwindCSS and Axio
 
 - Matches for the next 7 days, grouped by day, colour-coded by league
 - Live search (team or league) and league filter, result count, clear button
+- Leagues pages (`/leagues/:code`) with tabs: Matches (upcoming/results), Standings, Top Scorers, Teams
+- Match detail (`/matches/:id`) and team detail with squad (`/teams/:id`)
 - Skeleton loaders, friendly error messages with retry
 - 10-minute `sessionStorage` cache to stay under the free-tier limit (10 req/min)
 
