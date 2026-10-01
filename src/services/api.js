@@ -110,18 +110,20 @@ async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(p
   }
 }
 
-/** Free-tier competitions (code + name) used for navigation. */
+/** Free-tier competitions used for navigation. `emblem` is the URL the API's /competitions endpoint reports
+ * (not always "<code>.png"), stored here so showing it costs no request. */
+const EMBLEM = 'https://crests.football-data.org/'
 export const COMPETITIONS = [
-  { code: 'PL', name: 'Premier League', country: 'England' },
-  { code: 'PD', name: 'La Liga', country: 'Spain' },
-  { code: 'SA', name: 'Serie A', country: 'Italy' },
-  { code: 'BL1', name: 'Bundesliga', country: 'Germany' },
-  { code: 'FL1', name: 'Ligue 1', country: 'France' },
-  { code: 'CL', name: 'Champions League', country: 'Europe' },
-  { code: 'DED', name: 'Eredivisie', country: 'Netherlands' },
-  { code: 'PPL', name: 'Primeira Liga', country: 'Portugal' },
-  { code: 'ELC', name: 'Championship', country: 'England' },
-  { code: 'BSA', name: 'Série A', country: 'Brazil' },
+  { code: 'PL', name: 'Premier League', country: 'England', emblem: `${EMBLEM}PL.png` },
+  { code: 'PD', name: 'La Liga', country: 'Spain', emblem: `${EMBLEM}laliga.png` },
+  { code: 'SA', name: 'Serie A', country: 'Italy', emblem: `${EMBLEM}c111.png` },
+  { code: 'BL1', name: 'Bundesliga', country: 'Germany', emblem: `${EMBLEM}BL1.png` },
+  { code: 'FL1', name: 'Ligue 1', country: 'France', emblem: `${EMBLEM}FL1.png` },
+  { code: 'CL', name: 'Champions League', country: 'Europe', emblem: `${EMBLEM}CL.png` },
+  { code: 'DED', name: 'Eredivisie', country: 'Netherlands', emblem: `${EMBLEM}ED.png` },
+  { code: 'PPL', name: 'Primeira Liga', country: 'Portugal', emblem: `${EMBLEM}PPL.png` },
+  { code: 'ELC', name: 'Championship', country: 'England', emblem: `${EMBLEM}ELC.png` },
+  { code: 'BSA', name: 'Série A', country: 'Brazil', emblem: `${EMBLEM}bsa.png` },
 ]
 
 export const fetchCompetitionMatches = (code) => get(`/competitions/${code}/matches`).then((d) => d.matches)

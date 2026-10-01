@@ -14,10 +14,17 @@ export default function Leagues() {
           <Link
             key={c.code}
             to={`/leagues/${c.code}`}
-            className={`animate-fade-in rounded-xl border-l-4 bg-card p-5 shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-lg ${leagueColor(c.code)}`}
+            className={`group flex animate-fade-in items-center gap-4 rounded-xl border-l-4 bg-card p-5 shadow-sm transition duration-200 hover:scale-[1.02] hover:shadow-lg ${leagueColor(c.code)}`}
           >
-            <p className="text-xl font-bold">{c.name}</p>
-            <p className="text-sm text-muted">{t('country.' + c.country)} · {c.code}</p>
+            {/* Emblems are often dark on transparent, so they sit on a white tile (hidden if the image fails). */}
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-white p-1.5 transition duration-300 group-hover:scale-105">
+              <img src={c.emblem} alt="" loading="lazy" className="h-full w-full object-contain"
+                onError={(e) => { e.currentTarget.parentElement.style.display = 'none' }} />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xl font-bold">{c.name}</p>
+              <p className="text-sm text-muted">{t('country.' + c.country)} · {c.code}</p>
+            </div>
           </Link>
         ))}
       </div>
