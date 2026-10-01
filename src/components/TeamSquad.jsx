@@ -1,17 +1,25 @@
 import { Link } from 'react-router-dom'
 import AsyncBoundary from './AsyncBoundary.jsx'
 import useApi from '../utils/useApi.js'
-import { fetchTeam } from '../services/api.js'
+import { fetchTeam, fetchTeams } from '../services/api.js'
 import { useLang } from '../utils/i18n.jsx'
 
 const ORDER = ['Goalkeeper', 'Defence', 'Midfield', 'Offence']
 
-// Squad of one team grouped by position. Uses the same ['team', id] cache as the team page,
-// so opening the team page afterwards costs no extra request.
-export default function TeamSquad({ team }) {
+// Squad of one team grouped by position. The competition's teams list already contains every
+// squad and is shared by all matches of that league (and the Teams tab), so one request covers
+// both sides. Only if the team is missing there do we fall back to a per-team request.
+export default function TeamSquad({ team, code }) {
   const { t } = useLang()
-  const r = useApi(['team', String(team.id)], () => fetchTeam(team.id))
-  const data = r.data
+  const teams = useApi(['teams', code], () => fetchTeams(code), { enabled: Boolean(code) })
+  const fromList = teams.data?.find((x) => x.id === team.id)
+  const listed = Boolean(fromList?.squad?.length)
+  const needTeam = !teams.loading && !listed
+  const single = useApi(['team', String(team.id)], () => fetchTeam(team.id), { enabled: needTeam })
+  const data = listed ? fromList : single.data
+  const r = listed
+    ? { data, loading: false, error: null, retry: teams.retry }
+    : { ...single, loading: teams.loading || single.loading }
 
   const groups = (data?.squad || []).reduce((acc, p) => {
     const k = p.position || 'Other'

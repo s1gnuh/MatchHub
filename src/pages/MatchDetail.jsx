@@ -60,8 +60,8 @@ export default function MatchDetail() {
             <div className="animate-fade-in">
               <h2 className="mb-3 text-xl font-extrabold">{t('md.squads')}</h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <TeamSquad team={m.homeTeam} />
-                <TeamSquad team={m.awayTeam} />
+                <TeamSquad team={m.homeTeam} code={m.competition.code} />
+                <TeamSquad team={m.awayTeam} code={m.competition.code} />
               </div>
             </div>
             </div>
