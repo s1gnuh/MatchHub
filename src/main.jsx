@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000,           // kept in memory 30 min after the last component unmounts
       refetchOnWindowFocus: false,
       // Retrying a bad key / rate limit would only burn more requests.
-      retry: (count, err) => !['noKey', 'auth', 'rate'].includes(err?.code) && count < 1,
+      retry: (count, err) => !['noKey', 'auth', 'rate', 'restricted'].includes(err?.code) && count < 1,
     },
   },
 })

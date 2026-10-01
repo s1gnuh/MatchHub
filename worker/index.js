@@ -9,10 +9,14 @@
 //   ALLOWED_ORIGINS    var     – comma-separated list of allowed origins
 
 const UPSTREAM = 'https://api.football-data.org/v4'
-const ALLOWED_PATHS = /^\/(matches|competitions|teams)(\/|$)/
+const ALLOWED_PATHS = /^\/(matches|competitions|teams|persons)(\/|$)/
 
-// Edge-cache lifetime in seconds: squads/club info rarely change, tables only after a match.
-const maxAge = (p) => (/(^|\/)teams(\/|$)/.test(p) ? 86400 : /\/(standings|scorers)$/.test(p) ? 900 : 300)
+// Edge-cache lifetime in seconds: squads, players and competition info rarely change, tables only after a match.
+const maxAge = (p) =>
+  /(^|\/)(teams|persons)(\/|$)/.test(p) || /^\/?competitions\/[^/]+$/.test(p) ? 86400
+    : /\/head2head$/.test(p) ? 21600
+    : /\/(standings|scorers)$/.test(p) ? 900
+    : 300
 
 export default {
   async fetch(request, env) {

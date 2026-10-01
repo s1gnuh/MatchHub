@@ -1,7 +1,7 @@
 ﻿import { Link } from 'react-router-dom'
 import Countdown, { startsSoon } from './Countdown.jsx'
 import { useLang } from '../utils/i18n.jsx'
-import { formatTime, statusInfo, leagueColor } from '../utils/helpers.js'
+import { formatTime, statusInfo, leagueColor, stageLabel, durationBadge } from '../utils/helpers.js'
 
 // One team row: crest + name + score.
 function TeamRow({ team, score, bold }) {
@@ -26,8 +26,11 @@ export default function MatchCard({ match, index = 0, today = false }) {
   const full = score?.fullTime
   const played = full && full.home != null
   const live = status === 'IN_PLAY' || status === 'PAUSED'
-  const homeWon = played && full.home > full.away
-  const awayWon = played && full.away > full.home
+  // The API's winner field also covers matches settled on penalties, where the full-time score may be level.
+  const homeWon = played && (score.winner ? score.winner === 'HOME_TEAM' : full.home > full.away)
+  const awayWon = played && (score.winner ? score.winner === 'AWAY_TEAM' : full.away > full.home)
+  const extra = played ? durationBadge(score, t) : null
+  const stage = stageLabel(match.stage, t)
   const soon = !played && !live && (status === 'TIMED' || status === 'SCHEDULED') && startsSoon(utcDate)
 
   return (
@@ -47,13 +50,14 @@ export default function MatchCard({ match, index = 0, today = false }) {
             )}
             {played || live ? st.label : formatTime(utcDate)}
           </span>
+          {extra && <span className="rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">{extra}</span>}
           {soon && <Countdown utcDate={utcDate} className="text-[10px] font-semibold leading-tight text-primary" />}
           {!played && !live && status !== 'TIMED' && status !== 'SCHEDULED' && (
             <span className={`rounded-full px-1.5 text-[10px] font-semibold ${st.cls}`}>{st.label}</span>
           )}
         </div>
         <div className="min-w-0 flex-1 space-y-2 px-4 py-3">
-          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted">{competition?.name}</p>
+          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted">{competition?.name}{stage && ` · ${stage}`}</p>
           <TeamRow team={homeTeam} score={played ? full.home : null} bold={homeWon} />
           <TeamRow team={awayTeam} score={played ? full.away : null} bold={awayWon} />
         </div>

@@ -2,6 +2,7 @@
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchTeam } from '../services/api.js'
+import { ageFrom } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 
 // Team profile: info, coach and squad grouped by position.
@@ -48,8 +49,10 @@ export default function TeamDetail() {
                   <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {players.map((p) => (
                       <li key={p.id} className="rounded-lg bg-card px-4 py-2 text-sm shadow-sm">
-                        <span className="font-medium">{p.name}</span>
-                        <span className="ml-2 text-muted">{p.nationality}</span>
+                        <Link to={`/players/${p.id}`} className="font-medium hover:text-primary">{p.name}</Link>
+                        <span className="ml-2 text-muted">
+                          {ageFrom(p.dateOfBirth) != null && `${ageFrom(p.dateOfBirth)} · `}{p.nationality}
+                        </span>
                       </li>
                     ))}
                   </ul>

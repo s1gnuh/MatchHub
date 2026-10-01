@@ -5,10 +5,14 @@
 // (VITE_API_KEY is accepted as a fallback so an existing variable keeps working.)
 
 const UPSTREAM = 'https://api.football-data.org/v4'
-const ALLOWED = /^(matches|competitions|teams)(\/|$)/
+const ALLOWED = /^(matches|competitions|teams|persons)(\/|$)/
 
-// Edge-cache lifetime in seconds: squads/club info rarely change, tables only after a match.
-const maxAge = (p) => (/(^|\/)teams(\/|$)/.test(p) ? 86400 : /\/(standings|scorers)$/.test(p) ? 900 : 300)
+// Edge-cache lifetime in seconds: squads, players and competition info rarely change, tables only after a match.
+const maxAge = (p) =>
+  /(^|\/)(teams|persons)(\/|$)/.test(p) || /^\/?competitions\/[^/]+$/.test(p) ? 86400
+    : /\/head2head$/.test(p) ? 21600
+    : /\/(standings|scorers)$/.test(p) ? 900
+    : 300
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ message: 'Method not allowed' })

@@ -5,7 +5,7 @@ import Countdown from '../components/Countdown.jsx'
 import MatchInsights from '../components/MatchInsights.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchMatch } from '../services/api.js'
-import { formatDate, formatTime, statusInfo } from '../utils/helpers.js'
+import { formatDate, formatTime, statusInfo, stageLabel } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 
 const Side = ({ team }) => (
@@ -24,6 +24,9 @@ export default function MatchDetail() {
   const st = m && statusInfo(m.status, t)
   const ft = m?.score?.fullTime
   const ht = m?.score?.halfTime
+  const pens = m?.score?.penalties
+  // Matchday numbers only mean something in league-style phases, not in knockout rounds.
+  const showMatchday = Boolean(m?.matchday) && ['REGULAR_SEASON', 'LEAGUE_STAGE', 'GROUP_STAGE'].includes(m.stage)
 
   return (
     <>
@@ -35,7 +38,7 @@ export default function MatchDetail() {
             <div className="animate-fade-in rounded-xl bg-card p-6 shadow-sm">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
                 <Link to={`/leagues/${m.competition.code}`} className="font-medium text-muted hover:text-primary">
-                  {m.competition.name}{m.matchday ? ` · ${t('md.matchday', { n: m.matchday })}` : ''}
+                  {[m.competition.name, stageLabel(m.stage, t), showMatchday && t('md.matchday', { n: m.matchday })].filter(Boolean).join(' · ')}
                 </Link>
                 <span className={`rounded-full px-3 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
               </div>
@@ -45,6 +48,14 @@ export default function MatchDetail() {
                   {ft?.home != null
                     ? <p className="text-4xl font-bold">{ft.home} – {ft.away}</p>
                     : <p className="text-3xl font-bold text-primary">{formatTime(m.utcDate)}</p>}
+                  {ft?.home != null && m.score.duration === 'EXTRA_TIME' && (
+                    <p className="mt-1 text-sm font-semibold text-primary">{t('md.aet')}</p>
+                  )}
+                  {ft?.home != null && m.score.duration === 'PENALTY_SHOOTOUT' && (
+                    <p className="mt-1 text-sm font-semibold text-primary">
+                      {pens?.home != null ? t('md.pens', { h: pens.home, a: pens.away }) : t('md.penShort')}
+                    </p>
+                  )}
                   <p className="mt-1 text-sm text-muted">{formatDate(m.utcDate)}</p>
                   {(m.status === 'TIMED' || m.status === 'SCHEDULED') && (
                     <Countdown utcDate={m.utcDate} className="mt-1 block text-sm font-semibold text-primary" />

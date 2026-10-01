@@ -16,6 +16,19 @@ export const formatDate = (iso) =>
     month: 'short',
   })
 
+/** "3 Oct 2025" in Hanoi time (used where matches span several seasons). */
+export const formatDateFull = (iso) =>
+  new Date(iso).toLocaleDateString(locale, { timeZone: TIME_ZONE, day: 'numeric', month: 'short', year: 'numeric' })
+
+/** Age in whole years from an ISO date of birth, or null. */
+export const ageFrom = (dob) => {
+  if (!dob) return null
+  const b = new Date(dob), n = new Date()
+  let age = n.getFullYear() - b.getFullYear()
+  if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) age--
+  return age >= 0 ? age : null
+}
+
 /** "20:00" in Hanoi time. */
 export const formatTime = (iso) =>
   new Date(iso).toLocaleTimeString(locale, {
@@ -69,3 +82,21 @@ export const relativeDay = (iso) => {
   const diff = Math.round((new Date(dayKey(iso)) - new Date(dayKey(new Date().toISOString()))) / 86400000)
   return { 0: 'today', 1: 'tomorrow', '-1': 'yesterday' }[diff] || null
 }
+
+// Plain league seasons need no stage label; cups and knockout rounds do.
+const PLAIN_STAGES = ['REGULAR_SEASON']
+const humanize = (s) => s.toLowerCase().replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+
+/** Localised stage name ("Quarter-finals"), or null for an ordinary league round. */
+export const stageLabel = (stage, t) => {
+  if (!stage || PLAIN_STAGES.includes(stage)) return null
+  const key = 'stage.' + stage
+  const s = t(key)
+  return s === stage ? humanize(stage) : s // t() falls back to the key's last segment when untranslated
+}
+
+/** Short badge for matches decided after 90 minutes: "AET" / "Pens", else null. */
+export const durationBadge = (score, t) =>
+  score?.duration === 'EXTRA_TIME' ? t('dur.EXTRA_TIME')
+    : score?.duration === 'PENALTY_SHOOTOUT' ? t('dur.PENALTY_SHOOTOUT')
+    : null

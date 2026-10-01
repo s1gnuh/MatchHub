@@ -7,6 +7,7 @@ import Leagues from './pages/Leagues.jsx'
 import Competition from './pages/Competition.jsx'
 import MatchDetail from './pages/MatchDetail.jsx'
 import TeamDetail from './pages/TeamDetail.jsx'
+import PlayerDetail from './pages/PlayerDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 // App shell. The wrapper is keyed by pathname so every route change replays the page-in animation.
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/leagues/:code" element={<Competition />} />
             <Route path="/matches/:id" element={<MatchDetail />} />
             <Route path="/teams/:id" element={<TeamDetail />} />
+            <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

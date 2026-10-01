@@ -13,9 +13,11 @@ const hasKey = !DIRECT || Boolean(API_KEY)
 // Free tier allows 10 requests/min, so responses are cached. Rarely-changing data lives longer.
 const MIN = 60 * 1000
 function cacheTtl(path) {
-  if (/(^|\/)teams(\/|$)/.test(path)) return 24 * 60 * MIN       // squads, coaches, club info
-  if (/\/(standings|scorers)$/.test(path)) return 30 * MIN        // change only after a match ends
-  return 10 * MIN                                                  // fixtures, results, match detail
+  if (/(^|\/)(teams|persons)(\/|$)/.test(path)) return 24 * 60 * MIN // squads, coaches, club and player info
+  if (/^\/?competitions\/[^/]+$/.test(path)) return 24 * 60 * MIN     // competition info and season list
+  if (/\/head2head$/.test(path)) return 6 * 60 * MIN                   // all-time record barely changes
+  if (/\/(standings|scorers)$/.test(path)) return 30 * MIN            // change only after a match ends
+  return 10 * MIN                                                      // fixtures, results, match detail
 }
 
 const client = axios.create({
@@ -52,7 +54,7 @@ function writeCache(key, data) {
   }
 }
 
-/** Error with a machine-readable code ("noKey" | "rate" | "auth" | "timeout" | "network" | "http"); the UI translates it. */
+/** Error with a machine-readable code ("noKey" | "rate" | "auth" | "restricted" | "timeout" | "network" | "http"); the UI translates it. */
 export class ApiError extends Error {
   constructor(code, status) {
     super(code)
@@ -64,8 +66,9 @@ export class ApiError extends Error {
 function toApiError(err) {
   const status = err.response?.status
   if (status === 429) return new ApiError('rate', status)
-  // football-data.org answers 400 "API token is invalid" for bad keys
-  if (status === 400 || status === 401 || status === 403) return new ApiError('auth', status)
+  // 403 = resource outside the free plan (e.g. old seasons); bad keys answer 400 "API token is invalid"
+  if (status === 403) return new ApiError('restricted', status)
+  if (status === 400 || status === 401) return new ApiError('auth', status)
   if (err.code === 'ECONNABORTED') return new ApiError('timeout')
   if (!err.response) return new ApiError('network')
   return new ApiError('http', status)
@@ -128,8 +131,16 @@ export const COMPETITIONS = [
 
 export const fetchCompetitionMatches = (code) => get(`/competitions/${code}/matches`).then((d) => d.matches)
 export const fetchMatch = (id) => get(`/matches/${id}`)
-export const fetchStandings = (code) => get(`/competitions/${code}/standings`).then((d) => d.standings)
-export const fetchScorers = (code) => get(`/competitions/${code}/scorers`).then((d) => d.scorers)
+// `season` = start year (e.g. 2024); omit for the current season. The free plan only covers the last few seasons.
+const seasonParam = (season) => (season ? { season } : undefined)
+export const fetchStandings = (code, season) =>
+  get(`/competitions/${code}/standings`, seasonParam(season)).then((d) => d.standings)
+export const fetchScorers = (code, season) =>
+  get(`/competitions/${code}/scorers`, seasonParam(season)).then((d) => d.scorers)
+export const fetchCompetition = (code) => get(`/competitions/${code}`)
+/** Earlier meetings of the two teams of a match: { aggregates, matches }. Aggregates cover the full history. */
+export const fetchHead2Head = (matchId) => get(`/matches/${matchId}/head2head`, { limit: 10 })
+export const fetchPerson = (id) => get(`/persons/${id}`)
 export const fetchTeams = (code) => get(`/competitions/${code}/teams`).then((d) => d.teams)
 export const fetchTeam = (id) => get(`/teams/${id}`)
 

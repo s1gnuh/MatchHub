@@ -76,6 +76,12 @@ Club info, competitions, coach and the full squad grouped by position.
 
 - **Fixtures & results** for 10 competitions, with **Premier League** selected by default. Switch league from the chip bar, toggle **Upcoming / Results**, and open any match for details.
 - **Live search** by team or league name, with a result count.
+- **Rounds view:** besides Upcoming / Results, step through any matchday or knockout round with prev/next buttons or a dropdown.
+- **Standings** with goals for / against, goal difference and a **recent-form** column (last 5 results), plus a **season picker** for the last few seasons (the free plan limits how far back it goes). Top three get gold / silver / bronze badges.
+- **Top scorers** with age, matches, assists and penalties; names open a **player page** (shirt number, position, nationality, age, current team). Squads show ages and link to player pages too.
+- **Match insights:** recent form of both teams and **head to head** across seasons, with **AET / Pens** badges and stage names (Quarter-finals, Final…) for cup matches.
+- **Live feel:** pulsing LIVE dot, kickoff countdown, today's matches highlighted, and a back-to-top button.
+- **Installable (PWA):** add it to your home screen; the app shell opens offline.
 - **League pages** with four tabs: Matches, Standings, Top Scorers and Teams.
 - **Match detail** page that lists the **squads of both teams** (players grouped by position, plus the coach).
 - **Team pages** with club info, running competitions and the full squad.

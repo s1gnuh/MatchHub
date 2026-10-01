@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import AsyncBoundary from './AsyncBoundary.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchTeam, fetchTeams } from '../services/api.js'
+import { ageFrom } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 
 const ORDER = ['Goalkeeper', 'Defence', 'Midfield', 'Offence']
@@ -53,8 +54,10 @@ export default function TeamSquad({ team, code }) {
                   <ul className="divide-y divide-line">
                     {groups[pos].map((p) => (
                       <li key={p.id} className="flex items-center justify-between gap-3 py-1.5 text-sm">
-                        <span className="truncate font-medium">{p.name}</span>
-                        <span className="shrink-0 text-xs text-muted">{p.nationality}</span>
+                        <Link to={`/players/${p.id}`} className="truncate font-medium hover:text-primary">{p.name}</Link>
+                        <span className="shrink-0 text-xs text-muted">
+                          {ageFrom(p.dateOfBirth) != null && `${ageFrom(p.dateOfBirth)} · `}{p.nationality}
+                        </span>
                       </li>
                     ))}
                   </ul>
