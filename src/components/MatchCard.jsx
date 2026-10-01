@@ -1,4 +1,5 @@
 ﻿import { Link } from 'react-router-dom'
+import Countdown, { startsSoon } from './Countdown.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import { formatTime, statusInfo, leagueColor } from '../utils/helpers.js'
 
@@ -18,7 +19,7 @@ function TeamRow({ team, score, bold }) {
 }
 
 // SofaScore-style row card: time/status on the left, two stacked teams on the right.
-export default function MatchCard({ match, index = 0 }) {
+export default function MatchCard({ match, index = 0, today = false }) {
   const { t } = useLang()
   const { homeTeam, awayTeam, competition, status, utcDate, score } = match
   const st = statusInfo(status, t)
@@ -27,16 +28,26 @@ export default function MatchCard({ match, index = 0 }) {
   const live = status === 'IN_PLAY' || status === 'PAUSED'
   const homeWon = played && full.home > full.away
   const awayWon = played && full.away > full.home
+  const soon = !played && !live && (status === 'TIMED' || status === 'SCHEDULED') && startsSoon(utcDate)
 
   return (
     <Link
       to={`/matches/${match.id}`}
       style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
-      className={`group block animate-fade-in overflow-hidden rounded-xl border border-line border-l-4 bg-card shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
+      className={`group block animate-fade-in overflow-hidden rounded-xl border border-line border-l-4 bg-card transition ${today ? 'shadow-md shadow-primary/20 ring-1 ring-primary/40' : 'shadow-sm'} duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
     >
       <div className="flex items-stretch">
         <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-1 border-r border-line px-2 py-3 text-center">
-          <span className={`text-sm font-bold ${live ? 'text-red-500' : ''}`}>{played || live ? st.label : formatTime(utcDate)}</span>
+          <span className={`flex items-center gap-1.5 text-sm font-bold ${live ? 'text-red-500' : ''}`}>
+            {live && (
+              <span className="relative flex h-2 w-2" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+              </span>
+            )}
+            {played || live ? st.label : formatTime(utcDate)}
+          </span>
+          {soon && <Countdown utcDate={utcDate} className="text-[10px] font-semibold leading-tight text-primary" />}
           {!played && !live && status !== 'TIMED' && status !== 'SCHEDULED' && (
             <span className={`rounded-full px-1.5 text-[10px] font-semibold ${st.cls}`}>{st.label}</span>
           )}

@@ -13,12 +13,15 @@ export default function MatchList({ matches }) {
 
   return (
     <div className="space-y-8">
-      {Object.keys(groups).sort().map((k) => (
+      {Object.keys(groups).sort().map((k) => {
+        const rel = relativeDay(groups[k][0].utcDate)
+        const isToday = rel === 'today'
+        return (
         <section key={k}>
           <h2 className="mb-3 flex items-baseline gap-2">
-            {relativeDay(groups[k][0].utcDate) ? (
+            {rel ? (
               <>
-                <span className="text-xl font-extrabold">{t(relativeDay(groups[k][0].utcDate))}</span>
+                <span className={`text-xl font-extrabold ${isToday ? 'text-primary' : ''}`}>{t(rel)}</span>
                 <span className="text-sm text-muted">{formatDate(groups[k][0].utcDate)}</span>
               </>
             ) : (
@@ -26,10 +29,11 @@ export default function MatchList({ matches }) {
             )}
           </h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {groups[k].map((m, i) => <MatchCard key={m.id} match={m} index={i} />)}
+            {groups[k].map((m, i) => <MatchCard key={m.id} match={m} index={i} today={isToday} />)}
           </div>
         </section>
-      ))}
+        )
+      })}
     </div>
   )
 }

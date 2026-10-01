@@ -1,6 +1,7 @@
 ﻿import { Link, useParams } from 'react-router-dom'
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
 import TeamSquad from '../components/TeamSquad.jsx'
+import Countdown from '../components/Countdown.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchMatch } from '../services/api.js'
 import { formatDate, formatTime, statusInfo } from '../utils/helpers.js'
@@ -44,6 +45,9 @@ export default function MatchDetail() {
                     ? <p className="text-4xl font-bold">{ft.home} – {ft.away}</p>
                     : <p className="text-3xl font-bold text-primary">{formatTime(m.utcDate)}</p>}
                   <p className="mt-1 text-sm text-muted">{formatDate(m.utcDate)}</p>
+                  {(m.status === 'TIMED' || m.status === 'SCHEDULED') && (
+                    <Countdown utcDate={m.utcDate} className="mt-1 block text-sm font-semibold text-primary" />
+                  )}
                   {ht?.home != null && <p className="text-xs text-muted">{t('md.ht', { h: ht.home, a: ht.away })}</p>}
                 </div>
                 <Side team={m.awayTeam} />

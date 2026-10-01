@@ -25,6 +25,14 @@ export default {
           '0%': { opacity: 0, transform: 'translateY(10px)' },
           '100%': { opacity: 1, transform: 'translateY(0)' },
         },
+        'slide-in-right': {
+          '0%': { opacity: 0, transform: 'translateX(28px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' },
+        },
+        'slide-in-left': {
+          '0%': { opacity: 0, transform: 'translateX(-28px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' },
+        },
         page: {
           '0%': { opacity: 0, transform: 'translateY(14px) scale(0.99)' },
           '100%': { opacity: 1, transform: 'translateY(0) scale(1)' },
@@ -32,6 +40,8 @@ export default {
       },
       animation: {
         'fade-in': 'fade-in 0.45s cubic-bezier(.2,.7,.2,1) both',
+        'slide-in-right': 'slide-in-right 0.35s cubic-bezier(.2,.7,.2,1) both',
+        'slide-in-left': 'slide-in-left 0.35s cubic-bezier(.2,.7,.2,1) both',
         page: 'page 0.4s cubic-bezier(.2,.7,.2,1) both',
       },
     },

@@ -12,6 +12,15 @@ const UPCOMING = ['SCHEDULED', 'TIMED', 'IN_PLAY', 'PAUSED']
 export default function LeagueMatches({ code, search = '' }) {
   const { t } = useLang()
   const [mode, setMode] = useState('upcoming')
+  // Slide direction of the last Upcoming/Results toggle; reset when the league changes (plain fade then).
+  const [nav, setNav] = useState({ dir: null, code })
+  const dir = nav.code === code ? nav.dir : null
+  const enter = dir === 'right' ? 'animate-slide-in-right' : dir === 'left' ? 'animate-slide-in-left' : 'animate-fade-in'
+  const switchMode = (m) => {
+    if (m === mode) return
+    setNav({ dir: m === 'results' ? 'right' : 'left', code })
+    setMode(m)
+  }
   const r = useApi(['matches', code], () => (code === 'ALL' ? fetchMatches() : fetchCompetitionMatches(code)))
 
   return (
@@ -33,7 +42,7 @@ export default function LeagueMatches({ code, search = '' }) {
             <div className="mb-5 flex items-center justify-between gap-3">
               <div className="flex gap-1 rounded-full bg-subtle p-1">
                 {['upcoming', 'results'].map((m) => (
-                  <button key={m} onClick={() => setMode(m)}
+                  <button key={m} onClick={() => switchMode(m)}
                     className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
                     {t('m.' + m)}
                   </button>
@@ -42,7 +51,7 @@ export default function LeagueMatches({ code, search = '' }) {
               <p className="text-sm text-muted" aria-live="polite">{t(list.length === 1 ? 'm.one' : 'm.many', { n: list.length })}</p>
             </div>
             {/* key restarts the fade animation when the mode or league changes */}
-            <div key={`${code}-${mode}`} className="animate-fade-in">
+            <div key={`${code}-${mode}`} className={enter}>
               {list.length
                 ? <MatchList matches={list} />
                 : <p className="py-16 text-center text-muted">{t('m.none')}</p>}
