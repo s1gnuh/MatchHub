@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <>
       <h1 className="mb-1 text-3xl font-extrabold tracking-tight">{current ? current.name : t('home.allLeagues')}</h1>
-      <p className="mb-5 text-muted">{current ? t('home.sub', { country: t('country.' + current.country) }) : t('home.next7')}</p>
+      <p className="mb-5 text-muted">{current ? t('home.sub', { country: t('country.' + current.country) }) : t('home.next7')} · <span className="whitespace-nowrap">{t('home.tz')}</span></p>
 
       <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
         <Chip code="ALL" label={t('home.all')} active={code === 'ALL'} onClick={() => pick('ALL')} />

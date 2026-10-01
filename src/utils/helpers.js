@@ -4,31 +4,33 @@
 let locale
 export const setLocale = (l) => { locale = l }
 
-/** "Sat, 3 Oct" in the user's locale/timezone. */
+// All match times are shown in Hanoi, Vietnam time (GMT+7, no DST) whatever the visitor's timezone.
+export const TIME_ZONE = 'Asia/Ho_Chi_Minh'
+
+/** "Sat, 3 Oct" in Hanoi time. */
 export const formatDate = (iso) =>
   new Date(iso).toLocaleDateString(locale, {
+    timeZone: TIME_ZONE,
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   })
 
-/** "20:00" in the user's local timezone. */
+/** "20:00" in Hanoi time. */
 export const formatTime = (iso) =>
-  new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  new Date(iso).toLocaleTimeString(locale, {
+    timeZone: TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  })
 
-/** Local YYYY-MM-DD key, used to group matches by day. */
-export const dayKey = (iso) => {
-  const d = new Date(iso)
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-}
+/** Hanoi-time YYYY-MM-DD key, used to group matches by day. */
+export const dayKey = (iso) =>
+  new Date(iso).toLocaleDateString('en-CA', { timeZone: TIME_ZONE })
 
-/** YYYY-MM-DD (UTC) for API date params, offset by N days from today. */
-export const apiDate = (offsetDays = 0) => {
-  const d = new Date()
-  d.setUTCDate(d.getUTCDate() + offsetDays)
-  return d.toISOString().slice(0, 10)
-}
+/** YYYY-MM-DD (Hanoi date) for API date params, offset by N days from today. */
+export const apiDate = (offsetDays = 0) => dayKey(new Date(Date.now() + offsetDays * 86400000))
 
 const STATUS = {
   SCHEDULED: { label: 'Scheduled', cls: 'bg-subtle text-muted' },

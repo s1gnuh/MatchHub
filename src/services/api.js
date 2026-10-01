@@ -58,6 +58,18 @@ function toApiError(err) {
   if (!err.response) return new ApiError('network')
   return new ApiError('http', status)
 }
+// Client-side throttle: the free tier allows 10 requests/min, so stop earlier than the API does
+// (cache hits don't count). The UI then shows the "slow down" message instead of an API error.
+const MAX_PER_MINUTE = 9
+const sent = []
+function allowRequest() {
+  const now = Date.now()
+  while (sent.length && now - sent[0] > 60000) sent.shift()
+  if (sent.length >= MAX_PER_MINUTE) return false
+  sent.push(now)
+  return true
+}
+
 /** Cached GET. Throws an ApiError. */
 async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(params || {})}`) {
   if (!hasKey) {
@@ -65,6 +77,7 @@ async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(p
   }
   const cached = readCache(cacheKey)
   if (cached) return cached
+  if (!allowRequest()) throw new ApiError('rate', 429)
   try {
     const { data } = await client.get(path, { params })
     writeCache(cacheKey, data)
