@@ -1,6 +1,6 @@
 ﻿import { Link, useParams } from 'react-router-dom'
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
-import useAsync from '../utils/useAsync.js'
+import useApi from '../utils/useApi.js'
 import { fetchTeam } from '../services/api.js'
 import { useLang } from '../utils/i18n.jsx'
 
@@ -8,7 +8,7 @@ import { useLang } from '../utils/i18n.jsx'
 export default function TeamDetail() {
   const { t: tr } = useLang()
   const { id } = useParams()
-  const r = useAsync(() => fetchTeam(id), [id])
+  const r = useApi(['team', id], () => fetchTeam(id))
   const t = r.data
   const squad = (t?.squad || []).reduce((acc, p) => {
     const k = p.position || 'Other'
@@ -61,5 +61,7 @@ export default function TeamDetail() {
     </>
   )
 }
+
+
 
 

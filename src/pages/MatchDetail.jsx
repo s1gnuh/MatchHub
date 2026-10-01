@@ -1,6 +1,6 @@
 ﻿import { Link, useParams } from 'react-router-dom'
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
-import useAsync from '../utils/useAsync.js'
+import useApi from '../utils/useApi.js'
 import { fetchMatch } from '../services/api.js'
 import { formatDate, formatTime, statusInfo } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
@@ -16,7 +16,7 @@ const Side = ({ team }) => (
 export default function MatchDetail() {
   const { t } = useLang()
   const { id } = useParams()
-  const r = useAsync(() => fetchMatch(id), [id])
+  const r = useApi(['match', id], () => fetchMatch(id))
   const m = r.data
   const st = m && statusInfo(m.status, t)
   const ft = m?.score?.fullTime
@@ -59,5 +59,7 @@ export default function MatchDetail() {
     </>
   )
 }
+
+
 
 

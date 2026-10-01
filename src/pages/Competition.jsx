@@ -6,14 +6,14 @@ import Standings from '../components/Standings.jsx'
 import Scorers from '../components/Scorers.jsx'
 import TeamGrid from '../components/TeamGrid.jsx'
 import { useLang } from '../utils/i18n.jsx'
-import useAsync from '../utils/useAsync.js'
+import useApi from '../utils/useApi.js'
 import { COMPETITIONS, fetchStandings, fetchScorers, fetchTeams } from '../services/api.js'
 
 const TABS = ['Matches', 'Standings', 'Scorers', 'Teams']
 
 // Generic tab: loads data then renders `render(data)`.
-function DataTab({ loader, code, render }) {
-  const r = useAsync(() => loader(code), [code])
+function DataTab({ name, loader, code, render }) {
+  const r = useApi([name, code], () => loader(code))
   return <AsyncBoundary {...r}>{r.data && <div className="animate-fade-in">{render(r.data)}</div>}</AsyncBoundary>
 }
 
@@ -36,10 +36,11 @@ export default function Competition() {
         ))}
       </div>
       {tab === 'Matches' && <LeagueMatches code={code} />}
-      {tab === 'Standings' && <DataTab loader={fetchStandings} code={code} render={(d) => <Standings standings={d} />} />}
-      {tab === 'Scorers' && <DataTab loader={fetchScorers} code={code} render={(d) => <Scorers scorers={d} />} />}
-      {tab === 'Teams' && <DataTab loader={fetchTeams} code={code} render={(d) => <TeamGrid teams={d} />} />}
+      {tab === 'Standings' && <DataTab name="standings" loader={fetchStandings} code={code} render={(d) => <Standings standings={d} />} />}
+      {tab === 'Scorers' && <DataTab name="scorers" loader={fetchScorers} code={code} render={(d) => <Scorers scorers={d} />} />}
+      {tab === 'Teams' && <DataTab name="teams" loader={fetchTeams} code={code} render={(d) => <TeamGrid teams={d} />} />}
     </>
   )
 }
+
 

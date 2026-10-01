@@ -2,7 +2,7 @@
 import AsyncBoundary from './AsyncBoundary.jsx'
 import MatchList from './MatchList.jsx'
 import { useLang } from '../utils/i18n.jsx'
-import useAsync from '../utils/useAsync.js'
+import useApi from '../utils/useApi.js'
 import { fetchMatches, fetchCompetitionMatches } from '../services/api.js'
 
 const UPCOMING = ['SCHEDULED', 'TIMED', 'IN_PLAY', 'PAUSED']
@@ -12,7 +12,7 @@ const UPCOMING = ['SCHEDULED', 'TIMED', 'IN_PLAY', 'PAUSED']
 export default function LeagueMatches({ code, search = '' }) {
   const { t } = useLang()
   const [mode, setMode] = useState('upcoming')
-  const r = useAsync(() => (code === 'ALL' ? fetchMatches() : fetchCompetitionMatches(code)), [code])
+  const r = useApi(['matches', code], () => (code === 'ALL' ? fetchMatches() : fetchCompetitionMatches(code)))
 
   return (
     <AsyncBoundary {...r}>
@@ -53,4 +53,5 @@ export default function LeagueMatches({ code, search = '' }) {
     </AsyncBoundary>
   )
 }
+
 
