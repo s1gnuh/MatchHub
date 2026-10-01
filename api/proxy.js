@@ -13,6 +13,9 @@ const maxAge = (p) =>
     : /\/head2head$/.test(p) ? 21600
     : /\/(standings|scorers)$/.test(p) ? 900
     : 300
+// How long a stale copy may still be served instantly while the edge refreshes it in the background. Visitors on a
+// quiet site would otherwise often hit an expired entry and wait ~1-4 s for football-data.org.
+const staleFor = (age) => (age >= 86400 ? 172800 : age >= 21600 ? 86400 : age >= 900 ? 21600 : 3600)
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ message: 'Method not allowed' })
@@ -31,7 +34,7 @@ export default async function handler(req, res) {
     })
     // Share one upstream response between visitors (free tier: 10 requests/min).
     const age = maxAge(subPath)
-    res.setHeader('Cache-Control', `public, s-maxage=${age}, stale-while-revalidate=${age * 2}`)
+    res.setHeader('Cache-Control', `public, s-maxage=${age}, stale-while-revalidate=${staleFor(age)}`)
     res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json')
     return res.status(upstream.status).send(await upstream.text())
   } catch {

@@ -84,6 +84,14 @@ function allowRequest() {
   return true
 }
 
+/** A request the page already started from index.html (see the inline script there), or null. Used once. */
+function takeEarly(path, params) {
+  const early = !params && typeof window !== 'undefined' ? window.__early : null
+  const p = early?.[path]
+  if (p) delete early[path]
+  return p || null
+}
+
 /** Cached GET. Throws an ApiError. */
 async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(params || {})}`) {
   if (!hasKey) {
@@ -99,6 +107,14 @@ async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(p
     throw new ApiError('rate', 429)
   }
   try {
+    const early = takeEarly(path, params)
+    if (early) {
+      try {
+        const data = await early
+        writeCache(cacheKey, data)
+        return data
+      } catch { /* the early request failed: fall through to a normal one */ }
+    }
     const { data } = await client.get(path, { params })
     writeCache(cacheKey, data)
     return data

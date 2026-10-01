@@ -7,6 +7,42 @@
     <title>MatchHub – Football Schedule</title>
     <meta name="description" content="Upcoming football fixtures from top leagues. Search by team or competition." />
     <meta name="theme-color" content="#0a0a0a" />
+    <style>
+      /* Shown while the JS bundle downloads, so a first-time visitor sees the page frame immediately. */
+      html, body { margin: 0; background: #0a0a0a; color: #f5f5f5; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      #boot .bar { height: 56px; background: #000; border-bottom: 1px solid #2c2c2c; display: flex; align-items: center; padding: 0 16px; }
+      #boot .logo { background: #fff; border-radius: 8px; padding: 4px 10px; font: italic 900 20px/1 system-ui, sans-serif; transform: skewX(-6deg); }
+      #boot .logo b { color: #000; } #boot .logo i { color: #f59e0b; font-style: italic; }
+      #boot .wrap { max-width: 1920px; margin: 0 auto; padding: 24px 16px; }
+      #boot .t { height: 28px; width: 220px; max-width: 70%; background: #212121; border-radius: 8px; margin-bottom: 18px; }
+      #boot .card { height: 88px; background: #141414; border: 1px solid #2c2c2c; border-left: 4px solid #a855f7; border-radius: 12px; margin-bottom: 12px; animation: bootpulse 1.4s ease-in-out infinite; }
+      @keyframes bootpulse { 50% { opacity: .5; } }
+      @media (min-width: 768px) { #boot .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; } #boot .card { margin: 0; } }
+      @media (min-width: 1024px) { #boot .grid { grid-template-columns: repeat(3, 1fr); } }
+    </style>
+    <script>
+      // First visit: start the match list and table requests now, while the JS bundle is still downloading, instead
+      // of after it has run (src/services/api.js picks the results up). Skipped when the data is already stored,
+      // off the home screen, or when calls go straight to football-data.org (they need the key header).
+      (function () {
+        try {
+          var base = '%VITE_API_BASE_URL%'
+          if (base.charAt(0) === '%') base = '/api'
+          if (base.indexOf('api.football-data.org') !== -1) return
+          if (!/^#?\/?(\?.*)?$/.test(location.hash)) return
+          var m = /[?&]league=([A-Z0-9]+)/.exec(location.hash)
+          var code = m ? m[1] : 'PL'
+          window.__early = {}
+          ;['matches', 'standings'].forEach(function (k) {
+            var path = '/competitions/' + code + '/' + k
+            if (localStorage.getItem('matchhub:' + path + ':{}')) return
+            var p = fetch(base + path).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json() })
+            p.catch(function () {})
+            window.__early[path] = p
+          })
+        } catch (e) {}
+      })()
+    </script>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -16,10 +52,24 @@
     <meta property="og:type" content="website" />
       <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:ital,wght@1,800;1,900&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://crests.football-data.org" />
+    <!-- Web fonts load without blocking the first paint (text shows in the system font, then swaps) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:ital,wght@1,900&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:ital,wght@1,900&display=swap" /></noscript>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot" aria-hidden="true">
+        <div class="bar"><span class="logo"><b>Match</b><i>Hub</i></span></div>
+        <div class="wrap">
+          <div class="t"></div>
+          <div class="grid">
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+            <div class="card"></div><div class="card"></div><div class="card"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

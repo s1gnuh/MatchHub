@@ -11,7 +11,7 @@ import useMatch from '../utils/useMatch.js'
 import useMediaQuery, { WIDE } from '../utils/useMediaQuery.js'
 import { competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
-import { COMPETITIONS, fetchCompetitionMatches } from '../services/api.js'
+import { COMPETITIONS, fetchCompetitionMatches, fetchStandings } from '../services/api.js'
 
 const DEFAULT_LEAGUE = 'PL' // Premier League
 const byCode = (code) => COMPETITIONS.find((c) => c.code === code)
@@ -60,6 +60,9 @@ export default function Home() {
 
   // Same cache entry as the list itself, so this adds no request.
   const list = useApi(['matches', code], () => fetchCompetitionMatches(code), { enabled: wide })
+  // Start the standings request together with the match list (position badges, side table). Without this it only
+  // began once the first match card rendered, i.e. one full round trip later.
+  useApi(['standings', code], () => fetchStandings(code), { enabled: wide || !id })
 
   if (!wide && id) return <MatchDetail />
 
