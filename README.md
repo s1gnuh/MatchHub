@@ -12,6 +12,40 @@ React 18 · Vite · Tailwind CSS · TanStack Query
 
 ---
 
+## Screenshots
+
+### Matches
+Fixtures for the selected league, with league chips, live search and an Upcoming / Results toggle.
+
+![Matches](app%20picture/image1.png)
+
+### Leagues
+All supported competitions at a glance.
+
+![Leagues](app%20picture/2.png)
+
+### Standings
+Full league table for each competition.
+
+![Standings](app%20picture/3.png)
+
+### Top scorers
+Goals, assists and appearances for the league's leading players.
+
+![Top scorers](app%20picture/4.png)
+
+### Teams
+Every club in the league with its crest.
+
+![Teams](app%20picture/5.png)
+
+### Team page
+Club info, competitions, coach and the full squad grouped by position.
+
+![Team page](app%20picture/6.png)
+
+---
+
 ## Features
 
 - **Fixtures & results** for 10 competitions, with **Premier League** selected by default. Switch league from the chip bar, toggle **Upcoming / Results**, and open any match for details.
