@@ -41,8 +41,7 @@ The app uses `HashRouter` (URLs look like `/#/leagues/PL`) because Pages has no 
 Without a worker you can instead add `VITE_API_KEY` as an Actions secret and leave `VITE_KEYLESS` unset, but the browser will be blocked by CORS and the key would be public in the bundle, so this is not recommended.
 ## Deploy to Vercel
 
-Import the repo, then add `VITE_API_BASE_URL=/api` (proxied by `vercel.json`) and `VITE_API_KEY` as environment variables. Build command `npm run build`, output `dist`. `vercel.json` handles SPA routing.
+1. Import the repo on Vercel (framework preset: Vite).
+2. Add one environment variable: `FOOTBALL_DATA_KEY` = your football-data.org token (all environments), then deploy / redeploy.
 
-> Note: the API key is embedded in the client bundle. This is fine for the free tier, but use a serverless proxy if you need to keep it private.
-
-
+`api/[...path].js` is a serverless function that proxies `/api/*` to football-data.org and adds the key on the server, so the key is never exposed in the browser and no `VITE_*` variables are needed. (Locally, `npm run dev` proxies `/api` via Vite and uses `VITE_API_KEY` from `.env`.)

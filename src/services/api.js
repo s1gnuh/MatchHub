@@ -1,12 +1,14 @@
 ﻿import axios from 'axios'
 import { apiDate } from '../utils/helpers.js'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.football-data.org/v4'
-const API_KEY = import.meta.env.VITE_API_KEY
-// KEYLESS=true: requests go through a proxy (see /worker) that holds the API key server-side,
-// so no key is needed (or exposed) in the browser bundle.
-const KEYLESS = import.meta.env.VITE_KEYLESS === 'true'
-const hasKey = KEYLESS || (API_KEY && API_KEY !== 'your_api_key_here')
+// Default "/api": proxied by Vite in dev and by the serverless function in /api on Vercel.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const rawKey = import.meta.env.VITE_API_KEY
+const API_KEY = rawKey && rawKey !== 'your_api_key_here' ? rawKey : ''
+// A browser key is only mandatory when calling football-data.org directly. Behind a proxy
+// (Vercel function / Cloudflare Worker) the key lives on the server and is not exposed.
+const DIRECT = BASE_URL.includes('api.football-data.org')
+const hasKey = !DIRECT || Boolean(API_KEY)
 
 // Free tier allows 10 requests/min, so responses are cached for 10 minutes.
 const CACHE_TTL = 10 * 60 * 1000
@@ -14,7 +16,8 @@ const CACHE_TTL = 10 * 60 * 1000
 const client = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
-  headers: KEYLESS ? {} : { 'X-Auth-Token': API_KEY || '' },
+  // Sent only when a key is configured (local dev); the server-side proxies add their own otherwise.
+  headers: API_KEY ? { 'X-Auth-Token': API_KEY } : {},
 })
 
 /** Read a non-expired entry from sessionStorage (survives reloads, not tabs). */
