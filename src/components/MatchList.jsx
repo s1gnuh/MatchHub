@@ -1,9 +1,10 @@
-﻿import MatchCard from './MatchCard.jsx'
+import MatchCard from './MatchCard.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import { dayKey, relativeDay, formatDate } from '../utils/helpers.js'
 
 // Groups matches by local day; each group gets a "Today / Tomorrow / date" heading.
-export default function MatchList({ matches }) {
+// `compact` renders small day labels, for use inside a round section.
+export default function MatchList({ matches, compact = false }) {
   const { t } = useLang()
   const groups = matches.reduce((acc, m) => {
     const k = dayKey(m.utcDate)
@@ -12,22 +13,28 @@ export default function MatchList({ matches }) {
   }, {})
 
   return (
-    <div className="space-y-8">
+    <div className={compact ? 'space-y-4' : 'space-y-8'}>
       {Object.keys(groups).sort().map((k) => {
         const rel = relativeDay(groups[k][0].utcDate)
         const isToday = rel === 'today'
         return (
         <section key={k}>
-          <h2 className="mb-3 flex items-baseline gap-2">
-            {rel ? (
-              <>
-                <span className={`text-xl font-extrabold ${isToday ? 'text-primary' : ''}`}>{t(rel)}</span>
-                <span className="text-sm text-muted">{formatDate(groups[k][0].utcDate)}</span>
-              </>
-            ) : (
-              <span className="text-xl font-extrabold">{formatDate(groups[k][0].utcDate)}</span>
-            )}
-          </h2>
+          {compact ? (
+            <h3 className={`mb-2 text-xs font-bold uppercase tracking-wide ${isToday ? 'text-primary' : 'text-muted'}`}>
+              {rel ? `${t(rel)} · ` : ''}{formatDate(groups[k][0].utcDate)}
+            </h3>
+          ) : (
+            <h2 className="mb-3 flex items-baseline gap-2">
+              {rel ? (
+                <>
+                  <span className={`text-xl font-extrabold ${isToday ? 'text-primary' : ''}`}>{t(rel)}</span>
+                  <span className="text-sm text-muted">{formatDate(groups[k][0].utcDate)}</span>
+                </>
+              ) : (
+                <span className="text-xl font-extrabold">{formatDate(groups[k][0].utcDate)}</span>
+              )}
+            </h2>
+          )}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {groups[k].map((m, i) => <MatchCard key={m.id} match={m} index={i} today={isToday} />)}
           </div>
@@ -37,4 +44,3 @@ export default function MatchList({ matches }) {
     </div>
   )
 }
-
