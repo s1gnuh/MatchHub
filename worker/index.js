@@ -11,6 +11,9 @@
 const UPSTREAM = 'https://api.football-data.org/v4'
 const ALLOWED_PATHS = /^\/(matches|competitions|teams)(\/|$)/
 
+// Edge-cache lifetime in seconds: squads/club info rarely change, tables only after a match.
+const maxAge = (p) => (/(^|\/)teams(\/|$)/.test(p) ? 86400 : /\/(standings|scorers)$/.test(p) ? 900 : 300)
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || ''
@@ -37,8 +40,8 @@ export default {
     const token = env.FOOTBALL_DATA_KEY || request.headers.get('X-Auth-Token') || ''
     const upstream = await fetch(UPSTREAM + url.pathname + url.search, {
       headers: { 'X-Auth-Token': token },
-      // Edge-cache for 5 min: many visitors share one upstream request (10 req/min limit).
-      cf: { cacheTtl: 300, cacheEverything: true },
+      // Edge-cache so many visitors share one upstream request (10 req/min limit).
+      cf: { cacheTtl: maxAge(url.pathname), cacheEverything: true },
     })
 
     return new Response(upstream.body, {

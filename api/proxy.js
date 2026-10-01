@@ -7,6 +7,9 @@
 const UPSTREAM = 'https://api.football-data.org/v4'
 const ALLOWED = /^(matches|competitions|teams)(\/|$)/
 
+// Edge-cache lifetime in seconds: squads/club info rarely change, tables only after a match.
+const maxAge = (p) => (/(^|\/)teams(\/|$)/.test(p) ? 86400 : /\/(standings|scorers)$/.test(p) ? 900 : 300)
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ message: 'Method not allowed' })
 
@@ -23,7 +26,8 @@ export default async function handler(req, res) {
       headers: { 'X-Auth-Token': token },
     })
     // Share one upstream response between visitors (free tier: 10 requests/min).
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+    const age = maxAge(subPath)
+    res.setHeader('Cache-Control', `public, s-maxage=${age}, stale-while-revalidate=${age * 2}`)
     res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json')
     return res.status(upstream.status).send(await upstream.text())
   } catch {

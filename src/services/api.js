@@ -10,8 +10,13 @@ const API_KEY = rawKey && rawKey !== 'your_api_key_here' ? rawKey : ''
 const DIRECT = BASE_URL.includes('api.football-data.org')
 const hasKey = !DIRECT || Boolean(API_KEY)
 
-// Free tier allows 10 requests/min, so responses are cached for 10 minutes.
-const CACHE_TTL = 10 * 60 * 1000
+// Free tier allows 10 requests/min, so responses are cached. Rarely-changing data lives longer.
+const MIN = 60 * 1000
+function cacheTtl(path) {
+  if (/(^|\/)teams(\/|$)/.test(path)) return 24 * 60 * MIN       // squads, coaches, club info
+  if (/\/(standings|scorers)$/.test(path)) return 30 * MIN        // change only after a match ends
+  return 10 * MIN                                                  // fixtures, results, match detail
+}
 
 const client = axios.create({
   baseURL: BASE_URL,
@@ -21,12 +26,12 @@ const client = axios.create({
 })
 
 /** Read a non-expired entry from sessionStorage (survives reloads, not tabs). */
-function readCache(key) {
+function readCache(key, ttl) {
   try {
     const raw = sessionStorage.getItem(key)
     if (!raw) return null
     const { time, data } = JSON.parse(raw)
-    return Date.now() - time < CACHE_TTL ? data : null
+    return Date.now() - time < ttl ? data : null
   } catch {
     return null
   }
@@ -75,7 +80,7 @@ async function get(path, params, cacheKey = `matchhub:${path}:${JSON.stringify(p
   if (!hasKey) {
     throw new ApiError('noKey')
   }
-  const cached = readCache(cacheKey)
+  const cached = readCache(cacheKey, cacheTtl(path))
   if (cached) return cached
   if (!allowRequest()) throw new ApiError('rate', 429)
   try {
