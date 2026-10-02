@@ -5,7 +5,7 @@ const KEY = 'matchhub-lang'
 
 const DICT = {
   en: {
-    'nav.matches': 'Matches', 'nav.leagues': 'Leagues',
+    'nav.matches': 'Matches', 'nav.leagues': 'Leagues', 'nav.about': 'About', 'footer.about': 'About & disclaimer',
     'home.sub': '{country} · fixtures & results',
     'home.tz': 'All times are Hanoi time (GMT+7)',
     'search.ph': 'Search team or league…', 'search.label': 'Search by team or league', 'search.clear': 'Clear search',
@@ -59,7 +59,7 @@ const DICT = {
     'country.Portugal': 'Portugal', 'country.Brazil': 'Brazil',
   },
   vi: {
-    'nav.matches': 'Trận đấu', 'nav.leagues': 'Giải đấu',
+    'nav.matches': 'Trận đấu', 'nav.leagues': 'Giải đấu', 'nav.about': 'Giới thiệu', 'footer.about': 'Giới thiệu & miễn trừ trách nhiệm',
     'home.sub': '{country} · lịch thi đấu & kết quả',
     'home.tz': 'Tất cả giờ theo giờ Hà Nội (GMT+7)',
     'search.ph': 'Tìm đội bóng hoặc giải đấu…', 'search.label': 'Tìm theo đội bóng hoặc giải đấu', 'search.clear': 'Xoá tìm kiếm',

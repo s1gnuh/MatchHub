@@ -7,6 +7,7 @@ import Leagues from './pages/Leagues.jsx'
 import Competition from './pages/Competition.jsx'
 import TeamDetail from './pages/TeamDetail.jsx'
 import PlayerDetail from './pages/PlayerDetail.jsx'
+import About from './pages/About.jsx'
 import NotFound from './pages/NotFound.jsx'
 import useMediaQuery, { WIDE } from './utils/useMediaQuery.js'
 
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/leagues/:code" element={<Competition />} />
             <Route path="/teams/:id" element={<TeamDetail />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

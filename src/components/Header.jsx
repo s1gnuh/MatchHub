@@ -4,7 +4,7 @@ import { FaFacebookF, FaGithub, FaInstagram } from 'react-icons/fa'
 import { useLang } from '../utils/i18n.jsx'
 
 // Author's social profiles.
-const SOCIALS = [
+export const SOCIALS = [
   { name: 'Instagram', href: 'https://www.instagram.com/s1gnuh/?hl=en', Icon: FaInstagram },
   { name: 'Facebook', href: 'https://www.facebook.com/viet.hung.183615/', Icon: FaFacebookF },
   { name: 'GitHub', href: 'https://github.com/s1gnuh', Icon: FaGithub },
@@ -59,6 +59,7 @@ export default function Header() {
         <nav className="order-3 flex w-full gap-1 sm:order-2 sm:ml-auto sm:w-auto">
           <NavLink to="/" end className={() => link({ isActive: onMatches })}>{t('nav.matches')}</NavLink>
           <NavLink to="/leagues" className={link}>{t('nav.leagues')}</NavLink>
+          <NavLink to="/about" className={link}>{t('nav.about')}</NavLink>
         </nav>
 
         <div className="order-2 ml-auto flex items-center gap-1 sm:order-3 sm:ml-0 sm:gap-1.5">
