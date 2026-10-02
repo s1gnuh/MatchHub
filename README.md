@@ -242,3 +242,18 @@ Because all visitors of a deployed site share one API key, a very busy site can 
 
 - Football data from [football-data.org](https://www.football-data.org).
 - Built by **s1gnuh** · [GitHub](https://github.com/s1gnuh) · [Instagram](https://www.instagram.com/s1gnuh/) · [Facebook](https://www.facebook.com/viet.hung.183615/)
+
+---
+
+## Disclaimer
+
+MatchHub is a football schedule website for ordinary fans. The same text is shown in the app on the **About** page (English and Vietnamese).
+
+1. **No betting, no gambling.** MatchHub does not organise, operate, broker or promote football betting or any other form of gambling. It shows no betting odds, gives no betting tips or predictions, and does not link to or advertise betting sites or casinos.
+2. **No money involved.** The site sells nothing, takes no deposits and handles no payments. Nobody can place a bet, win or lose money on MatchHub.
+3. **Respecting the law.** Gambling and organising gambling are criminal offences in Vietnam (Articles 321 and 322 of the 2015 Penal Code). MatchHub must not be used for any illegal purpose, and the author does not support anyone who uses football information for illegal betting.
+4. **Information only.** Fixtures, results and statistics come from the public [football-data.org](https://www.football-data.org) API and are provided "as is" for information and entertainment. They can be delayed or contain mistakes, so for anything important check the official sources of the leagues and clubs.
+5. **Independent fan project.** MatchHub is a personal, non-commercial project. It is not affiliated with, endorsed or sponsored by any league, club, federation or football-data.org. Club names, crests and league logos belong to their respective owners and are shown only to identify teams and competitions.
+6. **External links.** Links to other websites (the data source, social profiles, club websites) are provided for convenience. The author is not responsible for their content.
+
+Football should bring joy, not debt or stress. If betting is affecting you or someone close to you, please talk to family, friends or a health professional and seek support early.
