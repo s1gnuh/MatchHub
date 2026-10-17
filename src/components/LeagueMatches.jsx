@@ -2,9 +2,11 @@ import { useState } from 'react'
 import AsyncBoundary from './AsyncBoundary.jsx'
 import MatchList from './MatchList.jsx'
 import RoundList from './RoundList.jsx'
+import TabPills from './TabPills.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
-import { fetchCompetitionMatches, fetchUpcoming } from '../services/api.js'
+import { fetchCompetitionMatches } from '../services/api.js'
+import useUpcoming from '../utils/useUpcoming.js'
 import { stageLabel, matchesQuery } from '../utils/helpers.js'
 
 // Every match lands in exactly one list: decided matches under Results, everything else (scheduled, live,
@@ -55,7 +57,7 @@ export default function LeagueMatches({ code, search = '', defaultMode = 'soon' 
   // Slide direction of the last mode toggle; reset when the league changes (plain fade then).
   const [nav, setNav] = useState({ dir: null, code })
   const dir = nav.code === code ? nav.dir : null
-  const enter = dir === 'right' ? 'animate-slide-in-right' : dir === 'left' ? 'animate-slide-in-left' : 'animate-fade-in'
+  const enter = dir === 'right' ? 'animate-tab-in-right' : dir === 'left' ? 'animate-tab-in-left' : 'animate-fade-in'
   const switchMode = (m) => {
     if (m === mode) return
     setNav({ dir: MODES.indexOf(m) > MODES.indexOf(mode) ? 'right' : 'left', code })
@@ -64,20 +66,14 @@ export default function LeagueMatches({ code, search = '', defaultMode = 'soon' 
   // Round chosen in the Rounds view (per league); null means "the current round".
   const [pick, setPick] = useState({ code, key: null })
   // Exactly one of these is enabled, so staying on "soon" never spends a request on the season list.
-  const soon = useApi(['matches', 'upcoming'], fetchUpcoming, { enabled: mode === 'soon' })
+  const soon = useUpcoming(mode === 'soon')
   const season = useApi(['matches', code], () => fetchCompetitionMatches(code), { enabled: mode !== 'soon' })
   const r = mode === 'soon' ? soon : season
 
   const bar = (count) => (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <div className="flex gap-1 rounded-full bg-subtle p-1">
-        {MODES.map((m) => (
-          <button key={m} onClick={() => switchMode(m)}
-            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold capitalize sm:px-4 lg:px-3 2xl:px-4 transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
-            {t('m.' + m)}
-          </button>
-        ))}
-      </div>
+      <TabPills label={t('m.view')} value={mode} onChange={switchMode}
+        tabs={MODES.map((m) => ({ key: m, label: t('m.' + m) }))} />
       <p className="shrink-0 whitespace-nowrap text-sm text-muted" aria-live="polite">{t(count === 1 ? 'm.one' : 'm.many', { n: count })}</p>
     </div>
   )

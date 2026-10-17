@@ -2,6 +2,10 @@ import { Link } from 'react-router-dom'
 import { useLang } from '../utils/i18n.jsx'
 import { ageFrom } from '../utils/helpers.js'
 
+/** A link when there is somewhere to go, the text on its own when there is not. */
+const Maybe = ({ to, children }) =>
+  to ? <Link to={to} className="hover:text-primary">{children}</Link> : <span>{children}</span>
+
 // Top scorers list: age, matches, assists, penalties and goals. Names open the player page.
 export default function Scorers({ scorers }) {
   const { t } = useLang()
@@ -21,16 +25,18 @@ export default function Scorers({ scorers }) {
         </thead>
         <tbody>
           {scorers.map((s, i) => (
-            <tr key={s.player.id} className="border-t border-line transition hover:bg-subtle">
+            <tr key={s.player.id ?? `${s.player.name}-${i}`} className="border-t border-line transition hover:bg-subtle">
               <td className="px-3 py-2 font-semibold">{i + 1}</td>
               <td className="py-2 font-medium">
-                <Link to={`/players/${s.player.id}`} className="hover:text-primary">
+                {/* Not every provider gives these rows a player id — see fetchGoalScorers. Without one there
+                    is no page to open, so the name is plain text rather than a link that goes nowhere. */}
+                <Maybe to={s.player.id && `/players/${s.player.id}`}>
                   {s.player.shirtNumber != null && <span className="mr-1.5 text-xs text-muted">{s.player.shirtNumber}</span>}
                   {s.player.name}
-                </Link>
+                </Maybe>
               </td>
               <td className="py-2">
-                <Link to={`/teams/${s.team.id}`} className="hover:text-primary">{s.team.shortName || s.team.name}</Link>
+                <Maybe to={s.team.id && `/teams/${s.team.id}`}>{s.team.shortName || s.team.name}</Maybe>
               </td>
               <td className="px-2 text-center">{ageFrom(s.player.dateOfBirth) ?? '–'}</td>
               <td className="px-2 text-center">{s.playedMatches ?? '–'}</td>

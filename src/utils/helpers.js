@@ -46,6 +46,16 @@ export const dayKey = (iso) =>
 export const formatDayShort = (iso) =>
   new Date(iso).toLocaleDateString(locale, { timeZone: TIME_ZONE, weekday: 'short', day: 'numeric' })
 
+/** "Sat" in Hanoi time. */
+export const formatWeekday = (iso) =>
+  new Date(iso).toLocaleDateString(locale, { timeZone: TIME_ZONE, weekday: 'short' })
+
+/** "18/10" in Hanoi time, read off the day key so the month always matches the weekday above it. */
+export const formatDayMonth = (iso) => {
+  const k = dayKey(iso)
+  return `${k.slice(8)}/${k.slice(5, 7)}`
+}
+
 const STATUS = {
   SCHEDULED: { label: 'Scheduled', cls: 'bg-subtle text-muted' },
   TIMED: { label: 'Upcoming', cls: 'bg-primary/10 text-primary' },

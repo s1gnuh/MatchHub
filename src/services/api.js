@@ -1,5 +1,10 @@
 ﻿import axios from 'axios'
 import { dayKey } from '../utils/helpers.js'
+import {
+  GOAL_COMPETITIONS, isGoalId,
+  fetchGoalCompetitionMatches, fetchGoalMatch, fetchGoalPerson, fetchGoalScorers,
+  fetchGoalStandings, fetchGoalTeam, fetchGoalTeams, fetchGoalWindow,
+} from './goalApi.js'
 
 // Default "/api": proxied by Vite in dev and by the serverless function in /api on Vercel.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
@@ -139,7 +144,8 @@ async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(p
  * Adding or removing one: index.html prefetches the upcoming list and repeats these codes to build the same
  * request — update them there too, or that head start is quietly thrown away. */
 const EMBLEM = 'https://crests.football-data.org/'
-export const COMPETITIONS = [
+/** The ones football-data.org serves. Only these can go in the one multi-league request it offers. */
+export const FD_COMPETITIONS = [
   { code: 'PL', name: 'Premier League', country: 'England', emblem: `${EMBLEM}PL.png` },
   { code: 'PD', name: 'La Liga', country: 'Spain', emblem: `${EMBLEM}laliga.png` },
   { code: 'SA', name: 'Serie A', country: 'Italy', emblem: `${EMBLEM}c111.png` },
@@ -152,49 +158,116 @@ export const COMPETITIONS = [
   { code: 'BSA', name: 'Série A', country: 'Brazil', emblem: `${EMBLEM}bsa.png` },
 ]
 
-// A stored match list, per competition ("/competitions/PL/matches:{}") or across them ("/matches:{"competitions":…}"),
-// but not a single stored match ("/matches/560603:{}"). Both list shapes hold their matches under `matches`.
-const MATCH_LIST = /^\/matches:|^\/competitions\/[^/]+\/matches:/
+/** Every competition the app navigates, whichever provider serves it. The Vietnamese ones carry
+ * `provider: 'goal'` and a `has` map saying which tabs they have data for; see services/goalApi.js. */
+export const COMPETITIONS = [...FD_COMPETITIONS, ...GOAL_COMPETITIONS]
 
-/** A match taken from a stored, still-fresh match list, or null (lets match views skip a request). */
+/** Which provider owns a competition code, so each call reaches the right API. */
+const isGoalCode = (code) => GOAL_COMPETITIONS.some((c) => c.code === code)
+
+/**
+ * localStorage cache around a loader that is not a football-data GET. The Vietnamese provider has its own
+ * client, its own key and its own daily quota, so it deliberately skips `allowRequest()` — throttling it
+ * against football-data's 10-a-minute would hold back requests that do not count towards that limit.
+ * The store and the stale-on-failure behaviour are the same.
+ */
+async function cachedCall(cacheKey, ttl, load) {
+  const key = PREFIX + cacheKey
+  const hit = readCache(key, ttl)
+  if (hit) return hit
+  try {
+    const data = await load()
+    writeCache(key, data)
+    return data
+  } catch (err) {
+    const old = readCache(key, Infinity)
+    if (old) return old
+    throw err
+  }
+}
+
+// A stored match list: per competition ("/competitions/PL/matches:{}"), across them ("/matches:{…}") or from
+// the Vietnamese provider ("goal/window:…", "goal/season/VL1"), but never a single stored match
+// ("/matches/560603:{}"). football-data stores its lists under `matches`; the adapter stores plain arrays.
+const MATCH_LIST = /^\/matches:|^\/competitions\/[^/]+\/matches:|^goal\/(window|season)/
+
+/** A match taken from a stored, still-fresh match list, or null (lets match views skip a request).
+ * Ids are compared as strings: football-data numbers them, the Vietnamese provider uses cuids. */
 export function findStoredMatch(id) {
+  const want = String(id)
   try {
     for (const key of Object.keys(localStorage)) {
       if (!key.startsWith(PREFIX) || !MATCH_LIST.test(key.slice(PREFIX.length))) continue
-      const m = readCache(key, cacheTtl('/matches'))?.matches?.find((x) => x.id === id)
+      const stored = readCache(key, cacheTtl('/matches'))
+      const list = Array.isArray(stored) ? stored : stored?.matches
+      const m = list?.find((x) => String(x.id) === want)
       if (m) return m
     }
   } catch { /* storage unavailable */ }
   return null
 }
 
-export const fetchCompetitionMatches = (code) => get(`/competitions/${code}/matches`).then((d) => d.matches)
-export const fetchMatch = (id) => get(`/matches/${id}`)
+export const fetchCompetitionMatches = (code) =>
+  isGoalCode(code)
+    ? cachedCall(`goal/season/${code}`, 10 * MIN, () => fetchGoalCompetitionMatches(code))
+    : get(`/competitions/${code}/matches`).then((d) => d.matches)
+
+/** One match. A cuid id belongs to the Vietnamese provider, a numeric one to football-data. */
+export const fetchMatch = (id) =>
+  isGoalId(id)
+    ? cachedCall(`goal/match/${id}`, 10 * MIN, () => fetchGoalMatch(id))
+    : get(`/matches/${id}`)
 
 /** Days the upcoming list covers. football-data.org answers 400 for a period longer than this. */
 export const UPCOMING_DAYS = 10
 const dayFromNow = (n) => dayKey(new Date(Date.now() + n * 86400000).toISOString())
 
-/** Query for the upcoming list. Key order matters: index.html builds the same string to prefetch it. */
+/** Query for the upcoming list. Only football-data competitions: it is that API's own multi-league request.
+ * Key order matters — index.html builds the same string to prefetch it. */
 export const upcomingParams = () => ({
-  competitions: COMPETITIONS.map((c) => c.code).join(','),
+  competitions: FD_COMPETITIONS.map((c) => c.code).join(','),
   dateFrom: dayFromNow(0),
   dateTo: dayFromNow(UPCOMING_DAYS - 1),
 })
 
-/** Every match of every supported competition for the next UPCOMING_DAYS days, in a single request.
- * The home screen runs on this: switching league there filters this list instead of calling the API again. */
+/** Every football-data match for the next UPCOMING_DAYS days, in a single request. The home screen runs on
+ * this: switching league there filters this list instead of calling the API again. */
 export const fetchUpcoming = () => get('/matches', upcomingParams()).then((d) => d.matches)
-// `season` = start year (e.g. 2024); omit for the current season. The free plan only covers the last few seasons.
+
+/** The same window for the Vietnamese competitions, from the other provider. A separate request by
+ * necessity — the two APIs cannot be asked together — so utils/useUpcoming.js keeps it off the critical
+ * path and merges it in when it arrives. */
+export const fetchUpcomingGoal = () => {
+  const from = dayFromNow(0), to = dayFromNow(UPCOMING_DAYS - 1)
+  return cachedCall(`goal/window:${from}:${to}`, 10 * MIN, () => fetchGoalWindow(from, to))
+}
+
+// `season` = start year (e.g. 2024); omit for the current season. The free plan only covers the last few
+// seasons, and the Vietnamese provider is only asked for the current one.
 const seasonParam = (season) => (season ? { season } : undefined)
 export const fetchStandings = (code, season) =>
-  get(`/competitions/${code}/standings`, seasonParam(season)).then((d) => d.standings)
+  isGoalCode(code)
+    ? cachedCall(`goal/standings/${code}`, 30 * MIN, () => fetchGoalStandings(code))
+    : get(`/competitions/${code}/standings`, seasonParam(season)).then((d) => d.standings)
 export const fetchScorers = (code, season) =>
-  get(`/competitions/${code}/scorers`, seasonParam(season)).then((d) => d.scorers)
+  isGoalCode(code)
+    ? cachedCall(`goal/scorers/${code}`, 30 * MIN, () => fetchGoalScorers(code))
+    : get(`/competitions/${code}/scorers`, seasonParam(season)).then((d) => d.scorers)
 export const fetchCompetition = (code) => get(`/competitions/${code}`)
-/** Earlier meetings of the two teams of a match: { aggregates, matches }. Aggregates cover the full history. */
+/** Earlier meetings of the two teams of a match: { aggregates, matches }. Aggregates cover the full history.
+ * football-data only; the Vietnamese provider has no head-to-head endpoint, and MatchInsights falls back to
+ * working the record out of the competition's own match list. */
 export const fetchHead2Head = (matchId) => get(`/matches/${matchId}/head2head`, { limit: 10 })
-export const fetchPerson = (id) => get(`/persons/${id}`)
-export const fetchTeams = (code) => get(`/competitions/${code}/teams`).then((d) => d.teams)
-export const fetchTeam = (id) => get(`/teams/${id}`)
+export const fetchPerson = (id) =>
+  isGoalId(id)
+    ? cachedCall(`goal/person/${id}`, 24 * 60 * MIN, () => fetchGoalPerson(id))
+    : get(`/persons/${id}`)
+export const fetchTeams = (code) =>
+  isGoalCode(code)
+    ? cachedCall(`goal/teams/${code}`, 24 * 60 * MIN, () => fetchGoalTeams(code))
+    : get(`/competitions/${code}/teams`).then((d) => d.teams)
+export const fetchTeam = (id) =>
+  isGoalId(id)
+    ? cachedCall(`goal/team/${id}`, 24 * 60 * MIN, () => fetchGoalTeam(id))
+    : get(`/teams/${id}`)
 

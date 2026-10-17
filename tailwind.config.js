@@ -37,12 +37,40 @@ export default {
           '0%': { opacity: 0, transform: 'translateY(14px) scale(0.99)' },
           '100%': { opacity: 1, transform: 'translateY(0) scale(1)' },
         },
+        // Switching tab or day: the outgoing panel is replaced by one that slides in from the side the
+        // visitor moved towards, resolving out of a short blur. The blur clears by 55% so the long tail of
+        // the easing is a cheap transform instead of a full-layer filter on a list of thirty cards.
+        'tab-in-right': {
+          '0%': { opacity: 0, transform: 'translate3d(26px,0,0) scale(.985)', filter: 'blur(5px)' },
+          '55%': { filter: 'blur(0)' },
+          '100%': { opacity: 1, transform: 'translate3d(0,0,0) scale(1)', filter: 'blur(0)' },
+        },
+        'tab-in-left': {
+          '0%': { opacity: 0, transform: 'translate3d(-26px,0,0) scale(.985)', filter: 'blur(5px)' },
+          '55%': { filter: 'blur(0)' },
+          '100%': { opacity: 1, transform: 'translate3d(0,0,0) scale(1)', filter: 'blur(0)' },
+        },
+        // Each card follows the panel a beat later (see MatchCard), so a list arrives as a wave.
+        'card-in': {
+          '0%': { opacity: 0, transform: 'translate3d(0,10px,0)' },
+          '100%': { opacity: 1, transform: 'translate3d(0,0,0)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.45s cubic-bezier(.2,.7,.2,1) both',
         'slide-in-right': 'slide-in-right 0.35s cubic-bezier(.2,.7,.2,1) both',
         'slide-in-left': 'slide-in-left 0.35s cubic-bezier(.2,.7,.2,1) both',
         page: 'page 0.4s cubic-bezier(.2,.7,.2,1) both',
+        // Decelerating ease: fast off the mark, long soft landing.
+        //
+        // `backwards`, not `both`, on purpose. These are entrance animations, and a forwards fill keeps the
+        // last keyframe's `transform` applied for good — which outranks the element's own classes and
+        // silently kills `hover:-translate-y-1` on a card. Backwards still holds the first keyframe through
+        // the stagger delay (cards wait their turn invisibly), then hands styling back to CSS. The last
+        // keyframe equals the resting style, so nothing jumps.
+        'tab-in-right': 'tab-in-right 0.42s cubic-bezier(.22,1,.36,1) backwards',
+        'tab-in-left': 'tab-in-left 0.42s cubic-bezier(.22,1,.36,1) backwards',
+        'card-in': 'card-in 0.42s cubic-bezier(.22,1,.36,1) backwards',
       },
     },
   },

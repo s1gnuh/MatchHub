@@ -13,12 +13,14 @@ export default function useMatch(id, initial = null) {
   const cached = useMemo(() => {
     if (initial) return initial
     if (!id) return null
-    const n = Number(id)
+    // Ids are compared as strings: football-data numbers its matches, the Vietnamese provider uses cuids,
+    // and useParams hands them over as strings either way.
+    const want = String(id)
     for (const [, data] of qc.getQueriesData({ queryKey: ['matches'] })) {
-      const m = Array.isArray(data) ? data.find((x) => x.id === n) : null
+      const m = Array.isArray(data) ? data.find((x) => String(x.id) === want) : null
       if (m) return m
     }
-    return findStoredMatch(n)
+    return findStoredMatch(id)
   }, [id, initial, qc])
   const r = useApi(['match', String(id)], () => fetchMatch(id), { enabled: Boolean(id) && !cached })
   return cached ? { data: cached, loading: false, error: null, retry: () => {} } : r

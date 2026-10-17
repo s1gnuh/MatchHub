@@ -11,7 +11,16 @@ import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
 import { COMPETITIONS, fetchCompetition, fetchStandings, fetchScorers, fetchTeams } from '../services/api.js'
 
-const TABS = ['Matches', 'Standings', 'Scorers', 'Teams']
+const ALL_TABS = ['Matches', 'Standings', 'Scorers', 'Teams']
+
+/** Tabs this competition has data behind. A knockout cup has no table, and the second provider publishes
+ * no scorers for some of its competitions (`has` in services/goalApi.js), so those tabs are left out rather
+ * than offered and found empty. */
+const tabsFor = (comp) => ALL_TABS.filter((t) => {
+  if (t === 'Standings') return comp.has ? comp.has.standings : true
+  if (t === 'Scorers') return comp.has ? comp.has.scorers : true
+  return true
+})
 const SEASONS_SHOWN = 4 // the free plan only covers the last few seasons
 
 // Generic tab: loads data then renders `render(data)`. `season` (start year) is part of the cache key only when set,
@@ -55,6 +64,9 @@ export default function Competition() {
   const season = pick.code === code ? pick.season : null
   const comp = COMPETITIONS.find((c) => c.code === code)
   if (!comp) return <NotFound />
+  const TABS = tabsFor(comp)
+  // The tab the visitor was last on may not exist for the league they just opened.
+  const active = TABS.includes(tab) ? tab : 'Matches'
 
   const seasonPicker = <SeasonSelect code={code} value={season} onChange={(s) => setPick({ code, season: s })} />
 
@@ -65,14 +77,14 @@ export default function Competition() {
       <div className="no-scrollbar mb-6 flex gap-1 overflow-x-auto border-b border-line">
         {TABS.map((tb) => (
           <button key={tb} onClick={() => setTab(tb)}
-            className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-semibold transition duration-300 ${tab === tb ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-main'}`}>
+            className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-semibold transition duration-300 ${active === tb ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-main'}`}>
             {t('tab.' + tb)}
           </button>
         ))}
       </div>
       {/* The league page is the place people come to for the season itself, so it opens on the full fixture list. */}
-      {tab === 'Matches' && <LeagueMatches code={code} defaultMode="upcoming" />}
-      {tab === 'Standings' && (
+      {active === 'Matches' && <LeagueMatches code={code} defaultMode="upcoming" />}
+      {active === 'Standings' && (
         <>
           {seasonPicker}
           {/* Form is computed from the current season's matches, so it is only shown for the current season. */}
@@ -80,13 +92,13 @@ export default function Competition() {
             render={(d) => <Standings standings={d} code={season ? undefined : code} />} />
         </>
       )}
-      {tab === 'Scorers' && (
+      {active === 'Scorers' && (
         <>
           {seasonPicker}
           <DataTab name="scorers" loader={fetchScorers} code={code} season={season} render={(d) => <Scorers scorers={d} />} />
         </>
       )}
-      {tab === 'Teams' && <DataTab name="teams" loader={fetchTeams} code={code} render={(d) => <TeamGrid teams={d} />} />}
+      {active === 'Teams' && <DataTab name="teams" loader={fetchTeams} code={code} render={(d) => <TeamGrid teams={d} />} />}
     </>
   )
 }

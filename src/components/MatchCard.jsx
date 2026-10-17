@@ -6,13 +6,26 @@ import useTablePositions from '../utils/useTablePositions.js'
 import { useLang } from '../utils/i18n.jsx'
 import { formatTime, formatDayShort, relativeDay, statusInfo, leagueColor, stageLabel, durationBadge, competitionName } from '../utils/helpers.js'
 
+// 1x1 transparent GIF, used to blank out a crest whose URL has stopped resolving.
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+
 // One team row: crest + name + score (or table position before the match is decided).
 function TeamRow({ team, score, bold, rank, rankTitle, small }) {
   const crest = small ? 'h-5 w-5' : 'h-6 w-6'
   return (
     <div className={`flex items-center ${small ? 'gap-2.5' : 'gap-3'}`}>
       {team.crest ? (
-        <img src={team.crest} alt="" loading="lazy" className={`${crest} shrink-0 object-contain`} />
+        // Crests are served by the data providers and, for the Vietnamese clubs, by vpf.vn. If one of them
+        // moves a file the row falls back to the same blank disc as a team with no crest at all, rather than
+        // showing a broken-image icon.
+        <img src={team.crest} alt="" loading="lazy" className={`${crest} shrink-0 object-contain`}
+          onError={(e) => {
+            // Swap in a transparent pixel as well as the placeholder look: keeping the dead URL as the src
+            // leaves a broken-image glyph inside the disc in most browsers.
+            e.currentTarget.onerror = null
+            e.currentTarget.src = BLANK
+            e.currentTarget.className = `${crest} shrink-0 rounded-full bg-subtle`
+          }} />
       ) : (
         <div className={`${crest} shrink-0 rounded-full bg-subtle`} />
       )}
@@ -45,7 +58,7 @@ export default function MatchCard({ match, index = 0, today = false }) {
   const positions = useTablePositions(noRank ? null : competition?.code)
   const rankOf = (team) => (status === 'FINISHED' ? null : positions?.get(team.id) ?? null)
   const soon = !played && !live && (status === 'TIMED' || status === 'SCHEDULED') && startsSoon(utcDate)
-  const active = selectedId === match.id
+  const active = selectedId != null && String(selectedId) === String(match.id)
   // In a list that is not grouped by day (the featured ranking), every card carries its own day.
   const rel = showDay ? relativeDay(utcDate) : null
   const day = showDay ? (rel ? t(rel) : formatDayShort(utcDate)) : null
@@ -80,10 +93,13 @@ export default function MatchCard({ match, index = 0, today = false }) {
     </>
   )
 
+  // Cards arrive as a wave behind the panel they are in, capped so a long list does not trail off.
+  const stagger = { animationDelay: `${Math.min(index, 12) * 40}ms` }
+
   if (dense) {
     return (
-      <Link to={`/matches/${match.id}`} aria-current={active ? 'true' : undefined}
-        className={`flex items-stretch border-l-2 transition duration-200 ${active ? 'border-primary bg-subtle' : `border-transparent hover:bg-subtle ${today ? 'bg-primary/5' : ''}`}`}>
+      <Link to={`/matches/${match.id}`} aria-current={active ? 'true' : undefined} style={stagger}
+        className={`flex animate-card-in items-stretch border-l-2 transition-colors duration-200 ${active ? 'border-primary bg-subtle' : `border-transparent hover:bg-subtle ${today ? 'bg-primary/5' : ''}`}`}>
         <div className={`flex shrink-0 flex-col items-center justify-center gap-0.5 py-2 text-center ${showDay ? 'w-20' : 'w-16'}`}>{status_}</div>
         <div className="min-w-0 flex-1 space-y-1.5 py-2.5 pr-3">
           {(showLeague || stage) && (
@@ -105,8 +121,8 @@ export default function MatchCard({ match, index = 0, today = false }) {
   return (
     <Link
       to={`/matches/${match.id}`}
-      style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
-      className={`group block animate-fade-in overflow-hidden rounded-xl border border-line border-l-4 bg-card transition ${today ? 'shadow-md shadow-primary/20 ring-1 ring-primary/40' : 'shadow-sm'} duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
+      style={stagger}
+      className={`group block animate-card-in overflow-hidden rounded-xl border border-line border-l-4 bg-card transition ${today ? 'shadow-md shadow-primary/20 ring-1 ring-primary/40' : 'shadow-sm'} duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
     >
       <div className="flex items-stretch">
         <div className={`flex shrink-0 flex-col items-center justify-center gap-1 border-r border-line px-2 py-3 text-center ${showDay ? 'w-24' : 'w-20'}`}>{status_}</div>

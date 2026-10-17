@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { FiStar } from 'react-icons/fi'
+import { FiCalendar } from 'react-icons/fi'
 import SearchFilter from '../components/SearchFilter.jsx'
+import ChipRail from '../components/ChipRail.jsx'
 import FeaturedMatches from '../components/FeaturedMatches.jsx'
 import LeagueMatches from '../components/LeagueMatches.jsx'
 import MatchPanel from '../components/MatchPanel.jsx'
@@ -10,11 +11,12 @@ import { ListContext } from '../components/ListContext.js'
 import MatchDetail from './MatchDetail.jsx'
 import useApi from '../utils/useApi.js'
 import useMatch from '../utils/useMatch.js'
+import useUpcoming from '../utils/useUpcoming.js'
 import useMediaQuery, { WIDE } from '../utils/useMediaQuery.js'
-import { competitionName } from '../utils/helpers.js'
+import { competitionName, dayKey } from '../utils/helpers.js'
 import { hotness } from '../utils/hotness.js'
 import { useLang } from '../utils/i18n.jsx'
-import { COMPETITIONS, UPCOMING_DAYS, fetchCompetitionMatches, fetchStandings, fetchUpcoming } from '../services/api.js'
+import { COMPETITIONS, UPCOMING_DAYS, fetchCompetitionMatches, fetchStandings } from '../services/api.js'
 
 // The screen a visitor lands on: the biggest matches of every supported competition rather than one league's
 // fixtures. It is not a competition code, so it travels as the absence of ?league=.
@@ -45,7 +47,12 @@ function centreMatch(matches, rankByInterest) {
   const open = sorted.filter((m) => m.status === 'TIMED' || m.status === 'SCHEDULED')
   if (open.length) {
     if (!rankByInterest) return { match: open[0], kind: 'next' }
-    return { match: open.reduce((a, b) => (hotness(b) > hotness(a) ? b : a)), kind: 'hot' }
+    // Prefer today's biggest match over a bigger one a week out, so this column agrees with the list beside
+    // it, which opens on today. Only when nothing is left today does it look across the window.
+    const today = dayKey(new Date().toISOString())
+    const pool = open.filter((m) => dayKey(m.utcDate) === today)
+    const from = pool.length ? pool : open
+    return { match: from.reduce((a, b) => (hotness(b) > hotness(a) ? b : a)), kind: 'hot' }
   }
   const last = sorted.filter((m) => m.status === 'FINISHED').pop()
   return last ? { match: last, kind: 'last' } : null
@@ -72,7 +79,7 @@ export default function Home() {
   const selected = useMatch(wide ? id : null)
   // The one request the whole home screen runs on: every competition, the next ten days. Switching league
   // filters it, and opening a match reads it, so neither costs a request.
-  const soon = useApi(['matches', 'upcoming'], fetchUpcoming, { enabled: wide })
+  const soon = useUpcoming(wide)
   const scoped = useMemo(() => {
     const all = soon.data || []
     return feat ? all : all.filter((m) => m.competition?.code === code)
@@ -106,12 +113,16 @@ export default function Home() {
       </p>
     </>
   )
+  // "All leagues" is pinned: it is the way back to the whole list, so it must not drift out of reach.
+  // The competitions beside it ride a rail that scrolls itself — see ChipRail for when it yields.
   const chips = (
-    <div className={`no-scrollbar flex gap-2 overflow-x-auto pb-1 ${wide ? '' : '-mx-4 mb-4 px-4 sm:mx-0 sm:px-0'}`}>
-      <Chip icon={<FiStar className="h-4 w-4" aria-hidden="true" />} label={t('top.chip')} active={feat} onClick={() => pick(FEATURED)} />
-      {COMPETITIONS.map((c) => (
-        <Chip key={c.code} emblem={c.emblem} label={competitionName(c, t)} active={code === c.code} onClick={() => pick(c.code)} />
-      ))}
+    <div className={`flex items-start gap-2 ${wide ? '' : 'mb-4'}`}>
+      <Chip icon={<FiCalendar className="h-4 w-4" aria-hidden="true" />} label={t('top.chip')} active={feat} onClick={() => pick(FEATURED)} />
+      <ChipRail label={t('leagues.title')} className={wide ? '' : '-mr-4 pr-4 sm:mr-0 sm:pr-0'}>
+        {COMPETITIONS.map((c) => (
+          <Chip key={c.code} emblem={c.emblem} label={competitionName(c, t)} active={code === c.code} onClick={() => pick(c.code)} />
+        ))}
+      </ChipRail>
     </div>
   )
   const list = feat ? <FeaturedMatches search={search} /> : <LeagueMatches code={code} search={search} />
@@ -132,7 +143,8 @@ export default function Home() {
   }
 
   const featured = id ? null : centreMatch(pool, feat)
-  const shownId = id ? Number(id) : featured?.match.id ?? null
+  // Not coerced to a number: football-data numbers its matches, the Vietnamese provider uses cuids.
+  const shownId = id ?? featured?.match.id ?? null
   const shown = id ? selected.data : featured?.match
   const highlight = shown ? [shown.homeTeam?.id, shown.awayTeam?.id] : []
   // The side table follows the league being looked at, or on the featured screen the league of the match shown.

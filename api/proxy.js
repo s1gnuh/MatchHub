@@ -7,9 +7,17 @@
 const UPSTREAM = 'https://api.football-data.org/v4'
 const ALLOWED = /^(matches|competitions|teams|persons)(\/|$)/
 
+// Second provider, for the Vietnamese competitions football-data.org does not carry: /api/goal/<path> is
+// forwarded to goal-api.com with its own key. It uses Bearer auth rather than a token header, and has its
+// own daily quota, so it is kept separate from the football-data path rather than folded into it.
+// Env: GOAL_API_KEY
+const GOAL_UPSTREAM = 'https://api.goal-api.com/v1'
+const GOAL_ALLOWED = /^(leagues|fixtures|standings|teams|players|countries)(\/|$)/
+
 // Edge-cache lifetime in seconds: squads, players and competition info rarely change, tables only after a match.
+// `players` is goal-api's name for what football-data calls `persons`.
 const maxAge = (p) =>
-  /(^|\/)(teams|persons)(\/|$)/.test(p) || /^\/?competitions\/[^/]+$/.test(p) ? 86400
+  /(^|\/)(teams|persons|players)(\/|$)/.test(p) || /^\/?competitions\/[^/]+$/.test(p) ? 86400
     : /\/head2head$/.test(p) ? 21600
     : /\/(standings|scorers)$/.test(p) ? 900
     : 300
@@ -22,17 +30,25 @@ export default async function handler(req, res) {
 
   // vercel.json rewrites /api/<anything> to /api/proxy?path=<anything>
   const { path = '', ...query } = req.query
-  const subPath = [].concat(path).join('/').replace(/^\/+/, '')
-  if (!ALLOWED.test(subPath)) return res.status(404).json({ message: 'Not found' })
+  let subPath = [].concat(path).join('/').replace(/^\/+/, '')
+
+  // "goal/<path>" picks the second provider; anything else is football-data.
+  const goal = subPath === 'goal' || subPath.startsWith('goal/')
+  if (goal) subPath = subPath.slice(5)
+
+  const allowed = goal ? GOAL_ALLOWED : ALLOWED
+  if (!allowed.test(subPath)) return res.status(404).json({ message: 'Not found' })
 
   const qs = new URLSearchParams(query).toString()
-  const token = process.env.FOOTBALL_DATA_KEY || process.env.VITE_API_KEY || req.headers['x-auth-token'] || ''
+  const base = goal ? GOAL_UPSTREAM : UPSTREAM
+  const headers = goal
+    ? { Authorization: `Bearer ${process.env.GOAL_API_KEY || ''}` }
+    : { 'X-Auth-Token': process.env.FOOTBALL_DATA_KEY || process.env.VITE_API_KEY || req.headers['x-auth-token'] || '' }
 
   try {
-    const upstream = await fetch(`${UPSTREAM}/${subPath}${qs ? `?${qs}` : ''}`, {
-      headers: { 'X-Auth-Token': token },
-    })
-    // Share one upstream response between visitors (free tier: 10 requests/min).
+    const upstream = await fetch(`${base}/${subPath}${qs ? `?${qs}` : ''}`, { headers })
+    // Share one upstream response between visitors (football-data's free tier allows 10 requests a minute,
+    // goal-api's 1,000 a day, so both benefit).
     const age = maxAge(subPath)
     res.setHeader('Cache-Control', `public, s-maxage=${age}, stale-while-revalidate=${staleFor(age)}`)
     res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json')
