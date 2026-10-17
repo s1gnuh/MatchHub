@@ -42,6 +42,10 @@ export const formatTime = (iso) =>
 export const dayKey = (iso) =>
   new Date(iso).toLocaleDateString('en-CA', { timeZone: TIME_ZONE })
 
+/** "Sat 18" in Hanoi time: a day label narrow enough to sit next to the kickoff time on a card. */
+export const formatDayShort = (iso) =>
+  new Date(iso).toLocaleDateString(locale, { timeZone: TIME_ZONE, weekday: 'short', day: 'numeric' })
+
 const STATUS = {
   SCHEDULED: { label: 'Scheduled', cls: 'bg-subtle text-muted' },
   TIMED: { label: 'Upcoming', cls: 'bg-primary/10 text-primary' },
@@ -80,6 +84,13 @@ export const competitionName = (c, t) => {
   const s = c.code ? t('league.' + c.code) : null
   return s && s !== c.code ? s : c.name
 }
+
+/** True when a match matches a free-text query (either team or the competition, in any language).
+ * `q` is expected lower-cased and trimmed; an empty query matches everything. */
+export const matchesQuery = (m, q, t) =>
+  !q || [m.homeTeam?.name, m.awayTeam?.name, m.homeTeam?.shortName, m.awayTeam?.shortName,
+    m.competition?.name, competitionName(m.competition, t)]
+    .some((s) => s?.toLowerCase().includes(q))
 
 /** Translation key ("today" | "tomorrow" | "yesterday") or null for other days. */
 export const relativeDay = (iso) => {

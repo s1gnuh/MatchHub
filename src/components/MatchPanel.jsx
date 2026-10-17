@@ -20,8 +20,9 @@ const Side = ({ team }) => (
 // Used by the match page (phones) and the centre column of the desktop layout.
 // Request cost: the match comes from an already loaded list when possible (see useMatch); squads load only when
 // scrolled into view (one shared request per league, cached for a day), or only on a click with `squadsOnDemand`
-// (the desktop default view, which the visitor did not pick); earlier-season meetings only on demand.
-export default function MatchPanel({ id, initial = null, squadsOnDemand = false }) {
+// (the desktop default view, which the visitor did not pick); form and head to head behave the same way, through
+// `insightsOnDemand`; earlier-season meetings only on demand.
+export default function MatchPanel({ id, initial = null, squadsOnDemand = false, insightsOnDemand = false }) {
   const { t } = useLang()
   const [squadsWanted, setSquadsWanted] = useState(false)
   const r = useMatch(id, initial)
@@ -75,7 +76,7 @@ export default function MatchPanel({ id, initial = null, squadsOnDemand = false 
           </div>
 
           {/* keyed by match so "show earlier seasons" resets when another match is opened */}
-          <MatchInsights key={m.id} match={m} />
+          <MatchInsights key={m.id} match={m} onDemand={insightsOnDemand} />
 
           {/* Squads of both teams, side by side on wider screens, stacked on phones */}
           <div className="animate-fade-in">

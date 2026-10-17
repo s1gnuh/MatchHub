@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import FormDots from './FormDots.jsx'
 import useApi from '../utils/useApi.js'
 import { fetchCompetitionMatches, fetchHead2Head } from '../services/api.js'
@@ -10,16 +11,30 @@ import { useLang } from '../utils/i18n.jsx'
 const name = (team) => team.shortName || team.name
 
 // Recent form of both teams, plus their head-to-head record.
-// Form and the in-season meetings come from the competition's cached match list (no request). Earlier seasons
-// come from /matches/{id}/head2head, which costs a request, so it is only loaded when the visitor asks for it
-// (or is already in memory). If that request fails or lists nothing we keep the in-season view.
-export default function MatchInsights({ match }) {
+// Both are read out of the competition's whole-season match list. That list is free wherever it is already
+// loaded, but on the home screen — which runs on one request covering every competition — it is not, so with
+// `onDemand` the section waits for a click rather than spending a request on a match nobody chose.
+// Earlier seasons come from /matches/{id}/head2head, a request of its own, and are always on demand.
+// If a request fails or lists nothing we keep whatever view we can show.
+export default function MatchInsights({ match, onDemand = false }) {
   const { t } = useLang()
+  const qc = useQueryClient()
   const { homeTeam: home, awayTeam: away } = match
-  const list = useApi(['matches', match.competition.code], () => fetchCompetitionMatches(match.competition.code))
+  const listKey = ['matches', match.competition.code]
+  // Already in memory (the visitor has been on this league): nothing to spend, so show the section straight away.
+  const [wantForm, setWantForm] = useState(() => !onDemand || Boolean(qc.getQueryData(listKey)))
+  const list = useApi(listKey, () => fetchCompetitionMatches(match.competition.code), { enabled: wantForm })
   const [wantAll, setWantAll] = useState(false)
   const h2h = useApi(['h2h', String(match.id)], () => fetchHead2Head(match.id), { enabled: wantAll })
 
+  if (!wantForm) {
+    return (
+      <button onClick={() => setWantForm(true)}
+        className="w-full animate-fade-in rounded-xl border border-line bg-card py-4 text-sm font-semibold text-primary transition hover:border-primary/50 hover:bg-subtle">
+        {t('mi.load')}
+      </button>
+    )
+  }
   if (list.loading) return <div className="h-40 animate-pulse rounded-xl bg-card" role="status" aria-label={t('loading')} />
   if (!list.data && !h2h.data) return null // insights are optional: stay quiet on errors
 

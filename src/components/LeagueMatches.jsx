@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import AsyncBoundary from './AsyncBoundary.jsx'
+import MatchList from './MatchList.jsx'
 import RoundList from './RoundList.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
-import { fetchCompetitionMatches } from '../services/api.js'
-import { stageLabel, competitionName } from '../utils/helpers.js'
+import { fetchCompetitionMatches, fetchUpcoming } from '../services/api.js'
+import { stageLabel, matchesQuery } from '../utils/helpers.js'
 
 // Every match lands in exactly one list: decided matches under Results, everything else (scheduled, live,
 // postponed, suspended, cancelled) under Upcoming, so no fixture of the season goes missing.
 const DECIDED = ['FINISHED', 'AWARDED']
-const MODES = ['upcoming', 'results', 'rounds']
+// "soon" is the next ten days, taken from the one list that covers every competition, so it costs no request of
+// its own. The other three need the league's whole season, which is a request per league — only made once asked for.
+const MODES = ['soon', 'upcoming', 'results', 'rounds']
 const LEAGUE_STAGES = ['REGULAR_SEASON', 'LEAGUE_STAGE', 'GROUP_STAGE'] // stages where "Matchday N" makes sense
 const roundKey = (m) => `${m.stage}|${m.matchday ?? 0}`
 
@@ -44,11 +47,11 @@ function groupByRound(list, rounds) {
   return [...byKey.values()].filter((r) => r.matches.length)
 }
 
-// Matches of one competition, grouped by round, with Upcoming / Results / Rounds views,
-// optional text search and a match count.
-export default function LeagueMatches({ code, search = '' }) {
+// Matches of one competition, with Next 10 days / Upcoming / Results / Rounds views, optional text search
+// and a match count. The last three group the whole season by round.
+export default function LeagueMatches({ code, search = '', defaultMode = 'soon' }) {
   const { t } = useLang()
-  const [mode, setMode] = useState('upcoming')
+  const [mode, setMode] = useState(defaultMode)
   // Slide direction of the last mode toggle; reset when the league changes (plain fade then).
   const [nav, setNav] = useState({ dir: null, code })
   const dir = nav.code === code ? nav.dir : null
@@ -60,17 +63,48 @@ export default function LeagueMatches({ code, search = '' }) {
   }
   // Round chosen in the Rounds view (per league); null means "the current round".
   const [pick, setPick] = useState({ code, key: null })
-  const r = useApi(['matches', code], () => fetchCompetitionMatches(code))
+  // Exactly one of these is enabled, so staying on "soon" never spends a request on the season list.
+  const soon = useApi(['matches', 'upcoming'], fetchUpcoming, { enabled: mode === 'soon' })
+  const season = useApi(['matches', code], () => fetchCompetitionMatches(code), { enabled: mode !== 'soon' })
+  const r = mode === 'soon' ? soon : season
+
+  const bar = (count) => (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <div className="flex gap-1 rounded-full bg-subtle p-1">
+        {MODES.map((m) => (
+          <button key={m} onClick={() => switchMode(m)}
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold capitalize sm:px-4 lg:px-3 2xl:px-4 transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
+            {t('m.' + m)}
+          </button>
+        ))}
+      </div>
+      <p className="shrink-0 whitespace-nowrap text-sm text-muted" aria-live="polite">{t(count === 1 ? 'm.one' : 'm.many', { n: count })}</p>
+    </div>
+  )
 
   return (
     <AsyncBoundary {...r}>
       {r.data && (() => {
         const q = search.trim().toLowerCase()
-        const sorted = [...r.data].sort((a, b) => a.utcDate.localeCompare(b.utcDate))
-        const match = (m) =>
-          !q || [m.homeTeam?.name, m.awayTeam?.name, m.homeTeam?.shortName, m.awayTeam?.shortName, m.competition?.name, competitionName(m.competition, t)]
-            .some((s) => s?.toLowerCase().includes(q))
+        // The ten-day list covers every competition, so this view keeps only the one being looked at.
+        const all = mode === 'soon' ? r.data.filter((m) => m.competition?.code === code) : r.data
+        const sorted = [...all].sort((a, b) => a.utcDate.localeCompare(b.utcDate))
 
+        if (mode === 'soon') {
+          const found = sorted.filter((m) => matchesQuery(m, q, t))
+          return (
+            <>
+              {bar(found.length)}
+              <div key={`${code}-soon`} className={enter}>
+                {found.length
+                  ? <MatchList matches={found} />
+                  : <p className="py-16 text-center text-muted">{t('m.noneSoon')}</p>}
+              </div>
+            </>
+          )
+        }
+
+        const match = (m) => matchesQuery(m, q, t)
         const rounds = buildRounds(sorted, t)
         let groups, roundBar = null, listKey = `${code}-${mode}`
         if (mode === 'rounds') {
@@ -104,17 +138,7 @@ export default function LeagueMatches({ code, search = '' }) {
 
         return (
           <>
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-              <div className="flex gap-1 rounded-full bg-subtle p-1">
-                {MODES.map((m) => (
-                  <button key={m} onClick={() => switchMode(m)}
-                    className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold capitalize sm:px-4 lg:px-3 2xl:px-4 transition duration-300 ${mode === m ? 'bg-card text-primary shadow' : 'text-muted hover:text-main'}`}>
-                    {t('m.' + m)}
-                  </button>
-                ))}
-              </div>
-              <p className="shrink-0 whitespace-nowrap text-sm text-muted" aria-live="polite">{t(count === 1 ? 'm.one' : 'm.many', { n: count })}</p>
-            </div>
+            {bar(count)}
             {roundBar}
             {/* key restarts the animation when the mode, league or round changes */}
             <div key={listKey} className={enter}>

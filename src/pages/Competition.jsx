@@ -70,7 +70,8 @@ export default function Competition() {
           </button>
         ))}
       </div>
-      {tab === 'Matches' && <LeagueMatches code={code} />}
+      {/* The league page is the place people come to for the season itself, so it opens on the full fixture list. */}
+      {tab === 'Matches' && <LeagueMatches code={code} defaultMode="upcoming" />}
       {tab === 'Standings' && (
         <>
           {seasonPicker}

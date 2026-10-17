@@ -4,7 +4,7 @@ import Countdown, { startsSoon } from './Countdown.jsx'
 import { ListContext } from './ListContext.js'
 import useTablePositions from '../utils/useTablePositions.js'
 import { useLang } from '../utils/i18n.jsx'
-import { formatTime, statusInfo, leagueColor, stageLabel, durationBadge, competitionName } from '../utils/helpers.js'
+import { formatTime, formatDayShort, relativeDay, statusInfo, leagueColor, stageLabel, durationBadge, competitionName } from '../utils/helpers.js'
 
 // One team row: crest + name + score (or table position before the match is decided).
 function TeamRow({ team, score, bold, rank, rankTitle, small }) {
@@ -29,7 +29,7 @@ function TeamRow({ team, score, bold, rank, rankTitle, small }) {
 // Inside a dense list (desktop side column) it renders as a compact row instead, highlighted when open.
 export default function MatchCard({ match, index = 0, today = false }) {
   const { t } = useLang()
-  const { dense, selectedId } = useContext(ListContext)
+  const { dense, selectedId, showLeague, showDay, noRank } = useContext(ListContext)
   const { homeTeam, awayTeam, competition, status, utcDate, score } = match
   const st = statusInfo(status, t)
   const full = score?.fullTime
@@ -41,13 +41,20 @@ export default function MatchCard({ match, index = 0, today = false }) {
   const extra = played ? durationBadge(score, t) : null
   const stage = stageLabel(match.stage, t)
   // League position of each team, shown until the match is finished (current table, not the one at kickoff).
-  const positions = useTablePositions(competition?.code)
+  // `noRank` lists cover several leagues at once, where filling these chips would cost one request per league.
+  const positions = useTablePositions(noRank ? null : competition?.code)
   const rankOf = (team) => (status === 'FINISHED' ? null : positions?.get(team.id) ?? null)
   const soon = !played && !live && (status === 'TIMED' || status === 'SCHEDULED') && startsSoon(utcDate)
   const active = selectedId === match.id
+  // In a list that is not grouped by day (the featured ranking), every card carries its own day.
+  const rel = showDay ? relativeDay(utcDate) : null
+  const day = showDay ? (rel ? t(rel) : formatDayShort(utcDate)) : null
 
   const status_ = (
     <>
+      {day && (
+        <span className={`text-[10px] font-semibold uppercase ${rel === 'today' ? 'text-primary' : 'text-muted'}`}>{day}</span>
+      )}
       <span className={`flex items-center gap-1.5 font-bold ${dense ? 'text-xs' : 'text-sm'} ${live ? 'text-red-500' : ''}`}>
         {live && (
           <span className="relative flex h-2 w-2" aria-hidden="true">
@@ -77,9 +84,18 @@ export default function MatchCard({ match, index = 0, today = false }) {
     return (
       <Link to={`/matches/${match.id}`} aria-current={active ? 'true' : undefined}
         className={`flex items-stretch border-l-2 transition duration-200 ${active ? 'border-primary bg-subtle' : `border-transparent hover:bg-subtle ${today ? 'bg-primary/5' : ''}`}`}>
-        <div className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 py-2 text-center">{status_}</div>
+        <div className={`flex shrink-0 flex-col items-center justify-center gap-0.5 py-2 text-center ${showDay ? 'w-20' : 'w-16'}`}>{status_}</div>
         <div className="min-w-0 flex-1 space-y-1.5 py-2.5 pr-3">
-          {stage && <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-muted">{stage}</p>}
+          {(showLeague || stage) && (
+            <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
+              {showLeague && competition?.emblem && (
+                <img src={competition.emblem} alt="" loading="lazy" className="h-3 w-3 shrink-0 rounded-sm bg-white object-contain p-px" />
+              )}
+              <span className="truncate">
+                {[showLeague && competitionName(competition, t), stage].filter(Boolean).join(' · ')}
+              </span>
+            </p>
+          )}
           {teams(true)}
         </div>
       </Link>
@@ -93,7 +109,7 @@ export default function MatchCard({ match, index = 0, today = false }) {
       className={`group block animate-fade-in overflow-hidden rounded-xl border border-line border-l-4 bg-card transition ${today ? 'shadow-md shadow-primary/20 ring-1 ring-primary/40' : 'shadow-sm'} duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
     >
       <div className="flex items-stretch">
-        <div className="flex w-20 shrink-0 flex-col items-center justify-center gap-1 border-r border-line px-2 py-3 text-center">{status_}</div>
+        <div className={`flex shrink-0 flex-col items-center justify-center gap-1 border-r border-line px-2 py-3 text-center ${showDay ? 'w-24' : 'w-20'}`}>{status_}</div>
         <div className="min-w-0 flex-1 space-y-2 px-4 py-3">
           <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted">{competitionName(competition, t)}{stage && ` · ${stage}`}</p>
           {teams(false)}

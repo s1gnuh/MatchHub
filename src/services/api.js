@@ -1,4 +1,5 @@
 ﻿import axios from 'axios'
+import { dayKey } from '../utils/helpers.js'
 
 // Default "/api": proxied by Vite in dev and by the serverless function in /api on Vercel.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
@@ -84,11 +85,18 @@ function allowRequest() {
   return true
 }
 
+/** How index.html and this module agree on a request: "/matches?competitions=PL,PD,…&dateFrom=…". */
+const earlyKey = (path, params) => {
+  const qs = params ? new URLSearchParams(params).toString() : ''
+  return qs ? `${path}?${qs}` : path
+}
+
 /** A request the page already started from index.html (see the inline script there), or null. Used once. */
 function takeEarly(path, params) {
-  const early = !params && typeof window !== 'undefined' ? window.__early : null
-  const p = early?.[path]
-  if (p) delete early[path]
+  const early = typeof window !== 'undefined' ? window.__early : null
+  const key = earlyKey(path, params)
+  const p = early?.[key]
+  if (p) delete early[key]
   return p || null
 }
 
@@ -127,7 +135,9 @@ async function get(path, params, cacheKey = `${PREFIX}${path}:${JSON.stringify(p
 }
 
 /** Free-tier competitions used for navigation. `emblem` is the URL the API's /competitions endpoint reports
- * (not always "<code>.png"), stored here so showing it costs no request. */
+ * (not always "<code>.png"), stored here so showing it costs no request.
+ * Adding or removing one: index.html prefetches the upcoming list and repeats these codes to build the same
+ * request — update them there too, or that head start is quietly thrown away. */
 const EMBLEM = 'https://crests.football-data.org/'
 export const COMPETITIONS = [
   { code: 'PL', name: 'Premier League', country: 'England', emblem: `${EMBLEM}PL.png` },
@@ -142,11 +152,15 @@ export const COMPETITIONS = [
   { code: 'BSA', name: 'Série A', country: 'Brazil', emblem: `${EMBLEM}bsa.png` },
 ]
 
-/** A match taken from a stored, still-fresh competition match list, or null (lets match views skip a request). */
+// A stored match list, per competition ("/competitions/PL/matches:{}") or across them ("/matches:{"competitions":…}"),
+// but not a single stored match ("/matches/560603:{}"). Both list shapes hold their matches under `matches`.
+const MATCH_LIST = /^\/matches:|^\/competitions\/[^/]+\/matches:/
+
+/** A match taken from a stored, still-fresh match list, or null (lets match views skip a request). */
 export function findStoredMatch(id) {
   try {
     for (const key of Object.keys(localStorage)) {
-      if (!key.startsWith(`${PREFIX}/competitions/`) || !key.endsWith('/matches:{}')) continue
+      if (!key.startsWith(PREFIX) || !MATCH_LIST.test(key.slice(PREFIX.length))) continue
       const m = readCache(key, cacheTtl('/matches'))?.matches?.find((x) => x.id === id)
       if (m) return m
     }
@@ -156,6 +170,21 @@ export function findStoredMatch(id) {
 
 export const fetchCompetitionMatches = (code) => get(`/competitions/${code}/matches`).then((d) => d.matches)
 export const fetchMatch = (id) => get(`/matches/${id}`)
+
+/** Days the upcoming list covers. football-data.org answers 400 for a period longer than this. */
+export const UPCOMING_DAYS = 10
+const dayFromNow = (n) => dayKey(new Date(Date.now() + n * 86400000).toISOString())
+
+/** Query for the upcoming list. Key order matters: index.html builds the same string to prefetch it. */
+export const upcomingParams = () => ({
+  competitions: COMPETITIONS.map((c) => c.code).join(','),
+  dateFrom: dayFromNow(0),
+  dateTo: dayFromNow(UPCOMING_DAYS - 1),
+})
+
+/** Every match of every supported competition for the next UPCOMING_DAYS days, in a single request.
+ * The home screen runs on this: switching league there filters this list instead of calling the API again. */
+export const fetchUpcoming = () => get('/matches', upcomingParams()).then((d) => d.matches)
 // `season` = start year (e.g. 2024); omit for the current season. The free plan only covers the last few seasons.
 const seasonParam = (season) => (season ? { season } : undefined)
 export const fetchStandings = (code, season) =>

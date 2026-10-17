@@ -26,7 +26,8 @@ MatchHub is the app I wanted instead: one clean page that opens fast, shows only
 | --- | --- |
 | Heavy pages full of ads, news and pop-ups just to see one fixture | A lightweight page with only fixtures, results, standings, scorers and squads |
 | Kickoff times shown in the wrong timezone | Every time and date is shown in Hanoi time (GMT+7), wherever you open it |
-| Digging through menus to reach your favourite league | Premier League opens by default, and one tap on the chip bar switches league |
+| Only one league on the opening screen, and a wait every time you look at another | The app opens on the big matches of **all ten competitions** at once, and switching league on that screen shows instantly — it is the same list, already loaded |
+| Digging through menus to reach your favourite league | One tap on the chip bar switches league |
 | Not remembering a team's league or exact name | Live search by team or league |
 | Having to open several sites for the table, top scorers and squads | One league page with Matches, Standings, Scorers and Teams tabs |
 | Slow loading every time you come back | Cached responses, so revisiting a tab is instant and does not hit the API again |
@@ -74,7 +75,8 @@ Phones keep the simple flow: list first, tap a match to open it.
 
 ## Features
 
-- **Fixtures & results** for 10 competitions, with **Premier League** selected by default. Switch league from the chip bar (with league logos); **Upcoming** and **Results** are grouped by matchday (or knockout round) and cover the **whole season**, results newest first.
+- **Featured home screen:** the app opens on the matches worth knowing about across **all 10 competitions** for the next 10 days, biggest tie first (a Champions League night outranks a league weekend, and two big names facing each other outrank a big club against a small one). A **By day** view lists everything in that window instead. All of it comes from a **single API request**, so switching league on this screen, or opening any of these matches, costs **no request at all**.
+- **Fixtures & results** for 10 competitions. Switch league from the chip bar (with league logos); each league opens on its **next 10 days** (free, from the list already loaded), with **Upcoming** and **Results** grouped by matchday (or knockout round) covering the **whole season**, results newest first, one request away.
 - **Rounds view:** step through any matchday or knockout round with prev/next buttons or a dropdown.
 - **Table position on match cards:** each team's current league position (`#3`) is shown until the match is finished.
 - **Live search** by team or league name, with a result count.
@@ -162,7 +164,7 @@ football-data.org only allows browser requests from `http://localhost`, so a dep
 
 Only `matches`, `competitions`, `teams` and `persons` paths are forwarded. Responses are edge-cached so many visitors share one upstream request: 5 minutes for fixtures and matches, 15 minutes for standings and scorers, 6 hours for head to head, 24 hours for teams, players and competition info.
 
-Endpoints used: `/competitions/{code}` (season list), `/competitions/{code}/matches`, `/competitions/{code}/standings`, `/competitions/{code}/scorers`, `/competitions/{code}/teams` (also carries every squad), `/matches/{id}`, `/matches/{id}/head2head`, `/teams/{id}`, `/persons/{id}`.
+Endpoints used: `/matches?competitions=…&dateFrom=…&dateTo=…` (the home screen's one request: every competition, the next 10 days — the API rejects a longer period), `/competitions/{code}` (season list), `/competitions/{code}/matches`, `/competitions/{code}/standings`, `/competitions/{code}/scorers`, `/competitions/{code}/teams` (also carries every squad), `/matches/{id}`, `/matches/{id}/head2head`, `/teams/{id}`, `/persons/{id}`.
 
 ## Deployment
 
@@ -226,8 +228,19 @@ The free football-data.org tier allows **10 requests per minute**. MatchHub stay
 3. Skipping retries on key / rate-limit errors.
 4. Blocking the 10th uncached request within a minute on the client, with a friendly message.
 5. Caching proxy responses at the edge (5 minutes to 24 hours, see above).
-6. Reusing data already loaded: opening a match reads it from the competition's match list, the side table and the position badges share one standings request, and one `/teams` request covers every squad of a league.
-7. Loading heavy extras only on demand: squads when scrolled into view (or on a click for the default match on desktop) and earlier-season head to head on a click.
+6. Asking for every competition at once where it can: the home screen is **one** `/matches` request covering all ten leagues for ten days, instead of one request per league. Switching league there, and opening any match listed there, spends nothing.
+7. Reusing data already loaded: opening a match reads it from whichever match list is in store, the side table and the position badges share one standings request, and one `/teams` request covers every squad of a league.
+8. Loading heavy extras only on demand: squads when scrolled into view (or on a click for the match the visitor did not pick on desktop), form and head to head on the same terms, earlier-season head to head on a click, and the league-position badges not at all while several leagues are listed together — they would cost one standings request per league on screen.
+
+What a first visit actually spends:
+
+| Screen | Requests |
+|---|---|
+| Home, phone or laptop | **1** (every league, ten days) |
+| Home, desktop from 1360px | 2 (plus the side table of the league shown) |
+| Switching league on the home screen | 1 (that league's table, for the position badges) |
+| Opening a match from any of those lists | 0 |
+| A league's full season (Upcoming / Results / Rounds) | 1 |
 
 Because all visitors of a deployed site share one API key, a very busy site can still hit the limit. In that case users see the same "slow down" message.
 
@@ -235,8 +248,10 @@ Because all visitors of a deployed site share one API key, a very busy site can 
 
 - **Colours:** edit the CSS variables in `src/styles/global.css`.
 - **Languages / wording:** edit `src/utils/i18n.jsx`.
-- **Leagues:** edit the `COMPETITIONS` list in `src/services/api.js` (code, name, country and emblem URL) and add a `league.<code>` string per language in `src/utils/i18n.jsx` for the localised name. The free tier only covers the competitions listed on football-data.org.
-- **Default league:** change `DEFAULT_LEAGUE` in `src/pages/Home.jsx`.
+- **Leagues:** edit the `COMPETITIONS` list in `src/services/api.js` (code, name, country and emblem URL) and add a `league.<code>` string per language in `src/utils/i18n.jsx` for the localised name. Also repeat the codes in the prefetch block in `index.html`: it builds the home screen's request before the bundle loads, and if the two lists disagree that head start is thrown away. The free tier only covers the competitions listed on football-data.org.
+- **Which matches count as "featured":** edit the club lists and the competition / stage bonuses in `src/utils/hotness.js`. Clubs are keyed by football-data.org team id (the API reports `FCB` for both Barcelona and Bayern, so names and three-letter codes are not safe keys); the ids are in the comments beside each entry.
+- **Opening screen:** the featured screen is what `/` shows; a league is `/?league=PL`. See `FEATURED` in `src/pages/Home.jsx`.
+- **How far ahead the home screen looks:** `UPCOMING_DAYS` in `src/services/api.js` (10 is the API's maximum for one request).
 
 ## Credits
 

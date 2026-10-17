@@ -4,6 +4,11 @@ import { ListContext } from './ListContext.js'
 import { useLang } from '../utils/i18n.jsx'
 import { dayKey, relativeDay, formatDate } from '../utils/helpers.js'
 
+/** How a row of matches is laid out: compact rows in one column (dense) or a card grid. */
+export const listClass = (dense) => dense
+  ? 'divide-y divide-line overflow-hidden rounded-lg border border-line'
+  : 'grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'
+
 // Groups matches by local day; each group gets a "Today / Tomorrow / date" heading.
 // `compact` renders small day labels, for use inside a round section. In a dense list (ListContext) the matches
 // are compact rows in one column instead of a card grid.
@@ -39,9 +44,7 @@ export default function MatchList({ matches, compact = false }) {
               )}
             </h2>
           )}
-          <div className={dense
-            ? 'divide-y divide-line overflow-hidden rounded-lg border border-line'
-            : 'grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'}>
+          <div className={listClass(dense)}>
             {groups[k].map((m, i) => <MatchCard key={m.id} match={m} index={i} today={isToday} />)}
           </div>
         </section>
