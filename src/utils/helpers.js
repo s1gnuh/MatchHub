@@ -81,8 +81,6 @@ const LEAGUE_COLORS = {
   BL1: 'border-red-500',
   FL1: 'border-indigo-500',
   CL: 'border-blue-800',
-  DED: 'border-amber-500',
-  PPL: 'border-green-600',
   ELC: 'border-pink-500',
   BSA: 'border-lime-500',
 }

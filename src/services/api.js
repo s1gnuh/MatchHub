@@ -152,8 +152,6 @@ export const FD_COMPETITIONS = [
   { code: 'BL1', name: 'Bundesliga', country: 'Germany', emblem: `${EMBLEM}BL1.png` },
   { code: 'FL1', name: 'Ligue 1', country: 'France', emblem: `${EMBLEM}FL1.png` },
   { code: 'CL', name: 'Champions League', country: 'Europe', emblem: `${EMBLEM}CL.png` },
-  { code: 'DED', name: 'Eredivisie', country: 'Netherlands', emblem: `${EMBLEM}ED.png` },
-  { code: 'PPL', name: 'Primeira Liga', country: 'Portugal', emblem: `${EMBLEM}PPL.png` },
   { code: 'ELC', name: 'Championship', country: 'England', emblem: `${EMBLEM}ELC.png` },
   { code: 'BSA', name: 'Série A', country: 'Brazil', emblem: `${EMBLEM}bsa.png` },
 ]

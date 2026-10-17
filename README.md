@@ -26,7 +26,7 @@ MatchHub is the app I wanted instead: one clean page that opens fast, shows only
 | --- | --- |
 | Heavy pages full of ads, news and pop-ups just to see one fixture | A lightweight page with only fixtures, results, standings, scorers and squads |
 | Kickoff times shown in the wrong timezone | Every time and date is shown in Hanoi time (GMT+7), wherever you open it |
-| Only one league on the opening screen, and a wait every time you look at another | The app opens on today across **all ten competitions**, and switching day or league there shows instantly — it is the same list, already loaded |
+| Only one league on the opening screen, and a wait every time you look at another | The app opens on today across **all 11 competitions**, and switching day or league there shows instantly — it is the same list, already loaded |
 | Digging through menus to reach your favourite league | One tap on the chip bar switches league |
 | Not remembering a team's league or exact name | Live search by team or league |
 | Having to open several sites for the table, top scorers and squads | One league page with Matches, Standings, Scorers and Teams tabs |
@@ -75,8 +75,8 @@ Phones keep the simple flow: list first, tap a match to open it.
 
 ## Features
 
-- **All-leagues home screen** with two views. **Today** is the default: today's matches across all 10 competitions, with a **day strip** to step through the next 10 days (a day with nothing on stays in the strip, dimmed, so a quiet Tuesday is never a dead end). **Featured** instead ranks the undecided matches by how big they are — a Champions League night outranks a league weekend, and two big names facing each other outrank a big club against a small one. All of it comes from a **single API request**, so switching view, day or league here, and opening any of these matches, costs **no request at all**.
-- **Fixtures & results** for 10 competitions. Switch league from the chip bar (with league logos); each league opens on its **next 10 days** (free, from the list already loaded), with **Upcoming** and **Results** grouped by matchday (or knockout round) covering the **whole season**, results newest first, one request away.
+- **All-leagues home screen** with two views. **Today** is the default: today's matches across all 11 competitions, with a **day strip** to step through the next 10 days (a day with nothing on stays in the strip, dimmed, so a quiet Tuesday is never a dead end). **Featured** instead ranks the undecided matches by how big they are — a Champions League night outranks a league weekend, and two big names facing each other outrank a big club against a small one. It takes one request per provider — two in all — and the page paints on the first, so switching view, day or league here, and opening any of these matches, costs **no request at all**.
+- **Fixtures & results** for 11 competitions — eight from football-data.org, three Vietnamese. Switch league from the chip bar (with league logos); each league opens on its **next 10 days** (free, from the list already loaded), with **Upcoming** and **Results** grouped by matchday (or knockout round) covering the **whole season**, results newest first, one request away.
 - **Rounds view:** step through any matchday or knockout round with prev/next buttons or a dropdown.
 - **Table position on match cards:** each team's current league position (`#3`) is shown until the match is finished.
 - **Live search** by team or league name, with a result count.
@@ -98,7 +98,7 @@ Phones keep the simple flow: list first, tap a match to open it.
 
 ### Supported competitions
 
-Premier League, La Liga, Serie A, Bundesliga, Ligue 1, UEFA Champions League, Eredivisie, Primeira Liga, Championship and Campeonato Brasileiro Série A — from football-data.org.
+Premier League, La Liga, Serie A, Bundesliga, Ligue 1, UEFA Champions League, Championship and Campeonato Brasileiro Série A — from football-data.org.
 
 **Vietnam** — V.League 1, V.League 2 and the Vietnamese Cup, from [goal-api.com](https://goal-api.com). football-data.org has no Vietnamese football on any plan, so these come from a second provider; `src/services/goalApi.js` translates its responses into the shape the rest of the app reads. What each has data for differs, and the league page only offers the tabs it can fill:
 
@@ -245,7 +245,7 @@ The free football-data.org tier allows **10 requests per minute**. MatchHub stay
 3. Skipping retries on key / rate-limit errors.
 4. Blocking the 10th uncached request within a minute on the client, with a friendly message.
 5. Caching proxy responses at the edge (5 minutes to 24 hours, see above).
-6. Asking for every competition at once where it can: the home screen is **one** `/matches` request covering all ten football-data leagues for ten days, instead of one request per league, plus one more for the Vietnamese competitions — the two APIs cannot be asked together. The page never waits for the second: it paints on football-data and the Vietnamese matches slot in when they arrive, and if that provider is down nothing breaks (`src/utils/useUpcoming.js`). Switching league, and opening any match listed there, spends nothing either way.
+6. Asking for every competition at once where it can: the home screen is **one** `/matches` request covering all eight football-data leagues for ten days, instead of one request per league, plus one more for the Vietnamese competitions — the two APIs cannot be asked together. The page never waits for the second: it paints on football-data and the Vietnamese matches slot in when they arrive, and if that provider is down nothing breaks (`src/utils/useUpcoming.js`). Switching league, and opening any match listed there, spends nothing either way.
 7. Reusing data already loaded: opening a match reads it from whichever match list is in store, the side table and the position badges share one standings request, and one `/teams` request covers every squad of a league.
 8. Loading heavy extras only on demand: squads when scrolled into view (or on a click for the match the visitor did not pick on desktop), form and head to head on the same terms, earlier-season head to head on a click, and the league-position badges not at all while several leagues are listed together — they would cost one standings request per league on screen.
 

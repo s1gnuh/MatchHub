@@ -103,7 +103,7 @@ export const fame = (team) => FAME.get(team?.id) ?? 0
 // V.League 1 is scored like a mid-sized European league rather than a minor one, because for this app's
 // audience a home-league match is worth more than a foreign one of the same standard.
 const COMPETITION = {
-  CL: 8, PL: 4, PD: 4, VL1: 4, SA: 3, BL1: 3, FL1: 2, VNC: 2, DED: 1, PPL: 1, BSA: 1, VL2: 1, ELC: 0,
+  CL: 8, PL: 4, PD: 4, VL1: 4, SA: 3, BL1: 3, FL1: 2, VNC: 2, BSA: 1, VL2: 1, ELC: 0,
 }
 
 // Knockout rounds matter more the later they are.
