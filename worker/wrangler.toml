@@ -5,3 +5,9 @@ compatibility_date = "2025-01-01"
 [vars]
 # Comma-separated origins allowed to call this proxy (origin only: no path, no trailing slash).
 ALLOWED_ORIGINS = "https://s1gnuh.github.io,http://localhost:5173"
+# URL of the Vercel deployment that handles push notifications.
+VERCEL_URL = "https://matchhub.vercel.app"
+
+[triggers]
+# Fire the scheduled handler every 15 minutes to dispatch pre-match push notifications.
+crons = ["*/15 * * * *"]
