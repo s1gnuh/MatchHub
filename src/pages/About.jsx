@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { FiAlertTriangle, FiClock, FiHeart, FiShield, FiUsers, FiZap } from 'react-icons/fi'
 import { SOCIALS } from '../components/Header.jsx'
 import { useLang } from '../utils/i18n.jsx'
+import useIsStandalone from '../utils/useIsStandalone.js'
 
 const VALUE_ICONS = [FiClock, FiZap, FiShield, FiUsers]
 
@@ -80,6 +81,7 @@ const CONTENT = {
 export default function About() {
   const { lang, t } = useLang()
   const c = CONTENT[lang]
+  const standalone = useIsStandalone()
 
   return (
     <div className="mx-auto max-w-4xl space-y-10">
@@ -140,14 +142,16 @@ export default function About() {
         <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-muted">{c.closing}</p>
         <p className="mt-4 font-semibold italic text-primary">— {c.sign}</p>
         <p className="mt-6 text-sm text-muted">{c.contact}</p>
-        <div className="mt-3 flex justify-center gap-2">
-          {SOCIALS.map(({ name, href, Icon }) => (
-            <a key={name} href={href} target="_blank" rel="noreferrer" aria-label={name} title={name}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-main/80 transition duration-300 hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-black">
-              <Icon size={16} />
-            </a>
-          ))}
-        </div>
+        {!standalone && (
+          <div className="mt-3 flex justify-center gap-2">
+            {SOCIALS.map(({ name, href, Icon }) => (
+              <a key={name} href={href} target="_blank" rel="noreferrer" aria-label={name} title={name}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-main/80 transition duration-300 hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-black">
+                <Icon size={16} />
+              </a>
+            ))}
+          </div>
+        )}
         <Link to="/" className="mt-6 inline-block rounded-full bg-primary px-6 py-2.5 font-semibold text-black transition hover:bg-primary-dark">
           {t('nf.back')}
         </Link>

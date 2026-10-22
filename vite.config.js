@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // In dev (and `vite preview`), /api is proxied to football-data.org to avoid browser CORS issues. The proxy adds the
 // key from .env itself, like the Vercel function and the Cloudflare Worker do in production.
@@ -26,7 +27,38 @@ export default defineConfig(({ mode }) => {
   return {
     // Relative base: the built site works from any sub-path (e.g. https://user.github.io/MatchHub/).
     base: './',
-    plugins: [react()],
+    plugins: [
+      react(),
+      VitePWA({
+        // Use existing public/manifest.webmanifest; don't generate a new one.
+        manifest: false,
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+          navigateFallback: 'index.html',
+          // API calls must go straight to the network, never intercepted.
+          navigateFallbackDenylist: [/^\/api\//],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/crests\.football-data\.org\/.*/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'matchhub-img',
+                expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'matchhub-fonts',
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              },
+            },
+          ],
+        },
+        devOptions: { enabled: false },
+      }),
+    ],
     server: { proxy },
     preview: { proxy },
   }

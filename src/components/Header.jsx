@@ -2,6 +2,7 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { FaFacebookF, FaGithub, FaInstagram } from 'react-icons/fa'
 import { useLang } from '../utils/i18n.jsx'
+import useIsStandalone from '../utils/useIsStandalone.js'
 
 // Author's social profiles.
 export const SOCIALS = [
@@ -33,6 +34,7 @@ function LanguageSwitch() {
 // Mobile: row 1 = logo + socials/language, row 2 = nav. Desktop (sm+): one row.
 export default function Header() {
   const { t } = useLang()
+  const standalone = useIsStandalone()
   // "Matches" stays highlighted while a match is open (/matches/:id belongs to the matches screen).
   const { pathname } = useLocation()
   const onMatches = pathname === '/' || pathname.startsWith('/matches/')
@@ -63,13 +65,13 @@ export default function Header() {
         </nav>
 
         <div className="order-2 ml-auto flex items-center gap-1 sm:order-3 sm:ml-0 sm:gap-1.5">
-          {SOCIALS.map(({ name, href, Icon }) => (
+          {!standalone && SOCIALS.map(({ name, href, Icon }) => (
             <a key={name} href={href} target="_blank" rel="noreferrer" aria-label={name} title={name}
               className="flex h-8 w-8 items-center justify-center rounded-full text-main/70 transition duration-300 hover:-translate-y-0.5 hover:bg-primary hover:text-black sm:h-9 sm:w-9">
               <Icon size={16} />
             </a>
           ))}
-          <span className="mx-1 hidden h-6 w-px bg-line sm:block" />
+          {!standalone && <span className="mx-1 hidden h-6 w-px bg-line sm:block" />}
           <LanguageSwitch />
         </div>
       </div>
