@@ -20,7 +20,7 @@ export default function InstallBanner() {
         </button>
 
         <div className="flex items-start gap-3 pr-8">
-          <img src="/icons/icon-192.png" alt="" className="h-12 w-12 flex-shrink-0 rounded-xl" />
+          <img src="/icon-192.png" alt="" className="h-12 w-12 flex-shrink-0 rounded-xl" />
           <div>
             <p className="font-semibold leading-tight">{t('install.title')}</p>
             <p className="mt-0.5 text-sm text-muted">{t('install.subtitle')}</p>

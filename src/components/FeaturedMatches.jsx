@@ -65,6 +65,12 @@ export default function FeaturedMatches({ search = '' }) {
     setDay(k)
   }
 
+  const dayIdx = days.findIndex((d) => d.key === shownDay)
+  const swipe = useSwipe({
+    onSwipeLeft: () => { if (dayIdx < days.length - 1) switchDay(days[dayIdx + 1].key) },
+    onSwipeRight: () => { if (dayIdx > 0) switchDay(days[dayIdx - 1].key) },
+  })
+
   return (
     <AsyncBoundary {...r}>
       {r.data && (() => {
@@ -76,11 +82,6 @@ export default function FeaturedMatches({ search = '' }) {
         const searching = mode === 'today' && Boolean(q)
         const ofDay = byDate.filter((m) => dayKey(m.utcDate) === shownDay)
         const hot = byHotness(found.filter((m) => !DECIDED.includes(m.status))).slice(0, HOT_LIMIT)
-        const dayIdx = days.findIndex((d) => d.key === shownDay)
-        const swipe = useSwipe({
-          onSwipeLeft: () => { if (dayIdx < days.length - 1) switchDay(days[dayIdx + 1].key) },
-          onSwipeRight: () => { if (dayIdx > 0) switchDay(days[dayIdx - 1].key) },
-        })
         const shown = mode === 'hot' ? hot : searching ? byDate : ofDay
 
         return (
