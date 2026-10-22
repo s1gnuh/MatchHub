@@ -30,31 +30,14 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
-        // Use existing public/manifest.webmanifest; don't generate a new one.
+        // Custom SW (src/sw.js) handles push notifications and all caching logic.
+        // vite-plugin-pwa compiles it and injects the precache manifest in place of self.__WB_MANIFEST.
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.js',
         manifest: false,
-        workbox: {
+        injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
-          navigateFallback: 'index.html',
-          // API calls must go straight to the network, never intercepted.
-          navigateFallbackDenylist: [/^\/api\//],
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/crests\.football-data\.org\/.*/i,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'matchhub-img',
-                expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'matchhub-fonts',
-                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              },
-            },
-          ],
         },
         devOptions: { enabled: false },
       }),

@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/proxy?path=:path*" }
+    { "source": "/api/:path((?!subscribe|push).*)", "destination": "/api/proxy?path=:path" }
   ]
 }

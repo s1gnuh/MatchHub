@@ -1,10 +1,25 @@
-import { useContext } from 'react'
+import { useContext, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { BsBell, BsBellFill } from 'react-icons/bs'
+import usePushNotification from '../utils/usePushNotification.js'
+import useIsStandalone from '../utils/useIsStandalone.js'
 import Countdown, { startsSoon } from './Countdown.jsx'
 import { ListContext } from './ListContext.js'
 import useTablePositions from '../utils/useTablePositions.js'
+import useNow from '../utils/useNow.js'
 import { useLang } from '../utils/i18n.jsx'
 import { formatTime, formatDayShort, relativeDay, statusInfo, leagueColor, stageLabel, durationBadge, competitionName } from '../utils/helpers.js'
+
+// Estimated match minute from kickoff time. Approximates only — HT break is assumed ~15 min.
+function liveMinute(utcDate, status, now) {
+  if (status === 'PAUSED') return 'HT'
+  const elapsed = Math.floor((now - Date.parse(utcDate)) / 60_000)
+  if (elapsed <= 45) return `${elapsed}'`
+  // After ~60 min elapsed (45 min 1st half + ~15 min break), estimate 2nd half
+  const h2 = elapsed - 60
+  if (h2 > 0) return `${45 + Math.min(h2, 45)}'`
+  return `45+'`
+}
 
 // 1x1 transparent GIF, used to blank out a crest whose URL has stopped resolving.
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
@@ -42,12 +57,17 @@ function TeamRow({ team, score, bold, rank, rankTitle, small }) {
 // Inside a dense list (desktop side column) it renders as a compact row instead, highlighted when open.
 export default function MatchCard({ match, index = 0, today = false }) {
   const { t } = useLang()
+  const now = useNow()
   const { dense, selectedId, showLeague, showDay, noRank } = useContext(ListContext)
   const { homeTeam, awayTeam, competition, status, utcDate, score } = match
   const st = statusInfo(status, t)
   const full = score?.fullTime
   const played = full && full.home != null
   const live = status === 'IN_PLAY' || status === 'PAUSED'
+  // HT score available when match has reached half-time (free tier doesn't provide live goals)
+  const ht = score?.halfTime
+  const htScore = live && ht?.home != null ? `${ht.home}–${ht.away}` : null
+  const matchMin = live ? liveMinute(utcDate, status, now) : null
   // The API's winner field also covers matches settled on penalties, where the full-time score may be level.
   const homeWon = played && (score.winner ? score.winner === 'HOME_TEAM' : full.home > full.away)
   const awayWon = played && (score.winner ? score.winner === 'AWAY_TEAM' : full.away > full.home)
@@ -59,6 +79,20 @@ export default function MatchCard({ match, index = 0, today = false }) {
   const rankOf = (team) => (status === 'FINISHED' ? null : positions?.get(team.id) ?? null)
   const soon = !played && !live && (status === 'TIMED' || status === 'SCHEDULED') && startsSoon(utcDate)
   const active = selectedId != null && String(selectedId) === String(match.id)
+
+  // Bell icon: show for upcoming matches within 24 h, only in standalone or non-iOS browsers
+  const standalone = useIsStandalone()
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  const { isSubscribed, toggle, supported: pushSupported } = usePushNotification(match.id)
+  const hoursUntil = (Date.parse(utcDate) - now) / 3_600_000
+  const canNotify = !dense && !live && !played && hoursUntil > 0 && hoursUntil <= 24 &&
+    pushSupported && (!isIOS || standalone)
+
+  const handleBell = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toggle(utcDate, homeTeam?.shortName ?? homeTeam?.name, awayTeam?.shortName ?? awayTeam?.name)
+  }, [toggle, utcDate, homeTeam, awayTeam])
   // In a list that is not grouped by day (the featured ranking), every card carries its own day.
   const rel = showDay ? relativeDay(utcDate) : null
   const day = showDay ? (rel ? t(rel) : formatDayShort(utcDate)) : null
@@ -75,8 +109,11 @@ export default function MatchCard({ match, index = 0, today = false }) {
             <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
           </span>
         )}
-        {played || live ? st.label : formatTime(utcDate)}
+        {played ? st.label : live ? matchMin : formatTime(utcDate)}
       </span>
+      {htScore && (
+        <span className="rounded bg-red-500/15 px-1.5 text-[10px] font-bold text-red-400">{htScore}</span>
+      )}
       {extra && <span className="rounded-full bg-primary/15 px-1.5 text-[10px] font-bold text-primary">{extra}</span>}
       {soon && <Countdown utcDate={utcDate} className="text-[10px] font-semibold leading-tight text-primary" />}
       {!played && !live && status !== 'TIMED' && status !== 'SCHEDULED' && (
@@ -122,7 +159,7 @@ export default function MatchCard({ match, index = 0, today = false }) {
     <Link
       to={`/matches/${match.id}`}
       style={stagger}
-      className={`group block animate-card-in overflow-hidden rounded-xl border border-line border-l-4 bg-card transition ${today ? 'shadow-md shadow-primary/20 ring-1 ring-primary/40' : 'shadow-sm'} duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
+      className={`group relative block animate-card-in overflow-hidden rounded-xl border border-line border-l-4 bg-card transition ${today ? 'shadow-md shadow-primary/20 ring-1 ring-primary/40' : 'shadow-sm'} duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 active:scale-[0.99] ${leagueColor(competition?.code)}`}
     >
       <div className="flex items-stretch">
         <div className={`flex shrink-0 flex-col items-center justify-center gap-1 border-r border-line px-2 py-3 text-center ${showDay ? 'w-24' : 'w-20'}`}>{status_}</div>
@@ -131,6 +168,15 @@ export default function MatchCard({ match, index = 0, today = false }) {
           {teams(false)}
         </div>
       </div>
+      {canNotify && (
+        <button
+          onClick={handleBell}
+          aria-label={isSubscribed ? 'Remove match notification' : 'Notify me before this match'}
+          className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-200 ${isSubscribed ? 'text-primary' : 'text-muted opacity-0 group-hover:opacity-100'}`}
+        >
+          {isSubscribed ? <BsBellFill size={13} /> : <BsBell size={13} />}
+        </button>
+      )}
     </Link>
   )
 }

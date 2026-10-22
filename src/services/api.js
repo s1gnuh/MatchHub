@@ -232,6 +232,14 @@ export const upcomingParams = () => ({
  * this: switching league there filters this list instead of calling the API again. */
 export const fetchUpcoming = () => get('/matches', upcomingParams()).then((d) => d.matches)
 
+/** Same as fetchUpcoming but skips the localStorage read — used for live polling so each call
+ *  hits the API and catches status/score changes without waiting for the 10-minute TTL. */
+export const fetchUpcomingFresh = () => {
+  const key = `${PREFIX}/matches:${JSON.stringify(upcomingParams())}`
+  try { localStorage.removeItem(key) } catch {}
+  return get('/matches', upcomingParams()).then((d) => d.matches)
+}
+
 /** The same window for the Vietnamese competitions, from the other provider. A separate request by
  * necessity — the two APIs cannot be asked together — so utils/useUpcoming.js keeps it off the critical
  * path and merges it in when it arrives. */

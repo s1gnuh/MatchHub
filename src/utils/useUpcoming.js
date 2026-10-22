@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import useApi from './useApi.js'
+import useLivePoll from './useLivePoll.js'
 import { fetchUpcoming, fetchUpcomingGoal } from '../services/api.js'
 
 /**
@@ -18,6 +19,9 @@ import { fetchUpcoming, fetchUpcomingGoal } from '../services/api.js'
 export default function useUpcoming(enabled = true) {
   const main = useApi(['matches', 'upcoming'], fetchUpcoming, { enabled })
   const extra = useApi(['matches', 'upcoming', 'goal'], fetchUpcomingGoal, { enabled })
+
+  const hasLive = main.data?.some((m) => m.status === 'IN_PLAY' || m.status === 'PAUSED') ?? false
+  useLivePoll(hasLive)
 
   const data = useMemo(
     () => (main.data ? [...main.data, ...(extra.data || [])] : null),
