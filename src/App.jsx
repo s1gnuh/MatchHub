@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
+import InstallBanner from './components/InstallBanner.jsx'
 import Home from './pages/Home.jsx'
 import Leagues from './pages/Leagues.jsx'
 import Competition from './pages/Competition.jsx'
@@ -39,6 +40,7 @@ export default function App() {
       </main>
       <Footer />
       <ScrollToTop />
+      <InstallBanner />
     </div>
   )
 }

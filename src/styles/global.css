@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+
 /* Black & gold palette. Values are RGB channels so Tailwind can add opacity. */
 :root {
   --app: 10 10 10;

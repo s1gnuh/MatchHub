@@ -67,6 +67,12 @@ const DICT = {
     'country.England': 'England', 'country.Spain': 'Spain', 'country.Italy': 'Italy', 'country.Germany': 'Germany',
     'country.France': 'France', 'country.Europe': 'Europe', 'country.Netherlands': 'Netherlands',
     'country.Portugal': 'Portugal', 'country.Brazil': 'Brazil', 'country.Vietnam': 'Vietnam',
+    'install.title': 'Add MatchHub to home screen',
+    'install.subtitle': 'Open faster, use offline, no browser bar.',
+    'install.ios1': 'Tap the Share button in Safari',
+    'install.ios2': 'Select "Add to Home Screen"',
+    'install.cta': 'Add to Home Screen',
+    'install.skip': 'Not now',
   },
   vi: {
     'nav.matches': 'Trận đấu', 'nav.leagues': 'Giải đấu', 'nav.about': 'Giới thiệu', 'footer.about': 'Giới thiệu & miễn trừ trách nhiệm',
@@ -131,6 +137,12 @@ const DICT = {
     'country.England': 'Anh', 'country.Spain': 'Tây Ban Nha', 'country.Italy': 'Ý', 'country.Germany': 'Đức',
     'country.France': 'Pháp', 'country.Europe': 'Châu Âu', 'country.Netherlands': 'Hà Lan',
     'country.Portugal': 'Bồ Đào Nha', 'country.Brazil': 'Brazil', 'country.Vietnam': 'Việt Nam',
+    'install.title': 'Thêm MatchHub vào màn hình chính',
+    'install.subtitle': 'Mở nhanh hơn, dùng offline, không có thanh trình duyệt.',
+    'install.ios1': 'Nhấn nút Chia sẻ trong Safari',
+    'install.ios2': 'Chọn "Thêm vào Màn hình chính"',
+    'install.cta': 'Thêm vào màn hình chính',
+    'install.skip': 'Lúc khác',
   },
 }
 

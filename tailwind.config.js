@@ -55,6 +55,10 @@ export default {
           '0%': { opacity: 0, transform: 'translate3d(0,10px,0)' },
           '100%': { opacity: 1, transform: 'translate3d(0,0,0)' },
         },
+        'slide-up': {
+          '0%': { opacity: 0, transform: 'translateY(100%)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.45s cubic-bezier(.2,.7,.2,1) both',
@@ -71,6 +75,7 @@ export default {
         'tab-in-right': 'tab-in-right 0.42s cubic-bezier(.22,1,.36,1) backwards',
         'tab-in-left': 'tab-in-left 0.42s cubic-bezier(.22,1,.36,1) backwards',
         'card-in': 'card-in 0.42s cubic-bezier(.22,1,.36,1) backwards',
+        'slide-up': 'slide-up 0.35s cubic-bezier(.22,1,.36,1) both',
       },
     },
   },

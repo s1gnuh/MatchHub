@@ -7,6 +7,7 @@ import TabPills from './TabPills.jsx'
 import { ListContext } from './ListContext.js'
 import { useLang } from '../utils/i18n.jsx'
 import useUpcoming from '../utils/useUpcoming.js'
+import useSwipe from '../utils/useSwipe.js'
 import { UPCOMING_DAYS } from '../services/api.js'
 import { byHotness } from '../utils/hotness.js'
 import { dayKey, matchesQuery } from '../utils/helpers.js'
@@ -75,6 +76,11 @@ export default function FeaturedMatches({ search = '' }) {
         const searching = mode === 'today' && Boolean(q)
         const ofDay = byDate.filter((m) => dayKey(m.utcDate) === shownDay)
         const hot = byHotness(found.filter((m) => !DECIDED.includes(m.status))).slice(0, HOT_LIMIT)
+        const dayIdx = days.findIndex((d) => d.key === shownDay)
+        const swipe = useSwipe({
+          onSwipeLeft: () => { if (dayIdx < days.length - 1) switchDay(days[dayIdx + 1].key) },
+          onSwipeRight: () => { if (dayIdx > 0) switchDay(days[dayIdx - 1].key) },
+        })
         const shown = mode === 'hot' ? hot : searching ? byDate : ofDay
 
         return (
@@ -92,7 +98,8 @@ export default function FeaturedMatches({ search = '' }) {
             )}
 
             {/* key restarts the entrance animation when the view, the day or the search changes */}
-            <div key={`${mode}-${searching ? 'q' : shownDay}`} className={enter}>
+            <div key={`${mode}-${searching ? 'q' : shownDay}`} className={enter}
+              {...(mode === 'today' && !searching ? swipe : {})}>
               {!shown.length && (
                 <p className="py-16 text-center text-muted">{mode === 'today' && !searching ? t('day.none') : t('m.none')}</p>
               )}
