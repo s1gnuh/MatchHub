@@ -18,9 +18,11 @@
 }
 
 @layer base {
-  html { color-scheme: dark; }
+  /* pan-x pan-y (not "manipulation") keeps scrolling but drops pinch-zoom from the allowed gesture set. */
+  html { color-scheme: dark; touch-action: pan-x pan-y; }
   body {
     @apply bg-app font-sans text-main antialiased;
+    touch-action: pan-x pan-y;
   }
 }
 

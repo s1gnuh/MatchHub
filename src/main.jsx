@@ -19,6 +19,12 @@ const queryClient = new QueryClient({
   },
 })
 
+// Lock out pinch-zoom. iOS Safari ignores the viewport meta's user-scalable=no (iOS 10+) and its own
+// gesturestart/gesturechange events bypass the touch-action CSS, so both need an explicit preventDefault.
+document.addEventListener('gesturestart', (e) => e.preventDefault())
+document.addEventListener('gesturechange', (e) => e.preventDefault())
+document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault() }, { passive: false })
+
 // Installable PWA: the service worker only runs in production builds, so dev reloads never get stale files.
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
