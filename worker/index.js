@@ -26,19 +26,6 @@ const maxAge = (p) =>
     : 300
 
 export default {
-  // Cron trigger: fires every 15 min (see wrangler.toml [triggers]).
-  // Calls the Vercel push endpoint which reads stored subscriptions and
-  // sends notifications for matches starting in ~30 minutes.
-  async scheduled(_event, env, ctx) {
-    const url = `${env.VERCEL_URL || 'https://matchhub.vercel.app'}/api/push`
-    ctx.waitUntil(
-      fetch(url, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${env.CRON_SECRET || ''}` },
-      }).catch(() => {}),
-    )
-  },
-
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || ''
     const allowed = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean)
