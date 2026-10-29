@@ -48,7 +48,7 @@ export default function Header() {
     return () => ro.disconnect()
   }, [])
   return (
-    <header ref={ref} className="sticky top-0 z-20 border-b border-line bg-black/85 backdrop-blur">
+    <header ref={ref} className="sticky top-0 z-20 border-b border-line bg-black/85 pt-safe backdrop-blur">
       <div className="mx-auto flex max-w-[1920px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:gap-x-4 sm:px-6 sm:py-3">
         <Link to="/" aria-label="MatchHub home" className="group order-1 flex items-center gap-2">
           <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" className="hidden h-9 w-9 transition duration-500 group-hover:rotate-[360deg] min-[400px]:block" />

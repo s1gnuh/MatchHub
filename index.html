@@ -8,17 +8,20 @@
     <meta name="description" content="Upcoming football fixtures from top leagues. Search by team or competition." />
     <meta name="theme-color" content="#0a0a0a" />
     <style>
-      /* Shown while the JS bundle downloads, so a first-time visitor sees the page frame immediately. */
+      /* Shown while the JS bundle downloads, so a first-time visitor sees the themed splash immediately
+         instead of a blank screen. Mirrors src/components/Splash.jsx, which takes over once React mounts
+         (same logo badge + shimmer bar) so there is no visible swap between the two. Plain CSS only: the
+         Tailwind build isn't loaded yet. */
       html, body { margin: 0; background: #0a0a0a; color: #f5f5f5; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
-      #boot .bar { height: 56px; background: #000; border-bottom: 1px solid #2c2c2c; display: flex; align-items: center; padding: 0 16px; }
-      #boot .logo { background: #fff; border-radius: 8px; padding: 4px 10px; font: italic 900 20px/1 system-ui, sans-serif; transform: skewX(-6deg); }
+      #boot { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; background: #0a0a0a; }
+      #boot .glow { position: absolute; width: 144px; height: 144px; border-radius: 50%; background: radial-gradient(circle, rgba(245,158,11,.35), transparent 70%); filter: blur(6px); animation: bootGlow 1.8s ease-in-out infinite; }
+      #boot .logo { position: relative; background: #fff; border-radius: 10px; padding: 10px 20px; font: italic 900 28px/1 system-ui, sans-serif; transform: skewX(-6deg); box-shadow: 0 8px 30px rgba(245,158,11,.2); }
       #boot .logo b { color: #000; } #boot .logo i { color: #f59e0b; font-style: italic; }
-      #boot .wrap { max-width: 1920px; margin: 0 auto; padding: 24px 16px; }
-      #boot .t { height: 28px; width: 220px; max-width: 70%; background: #212121; border-radius: 8px; margin-bottom: 18px; }
-      #boot .card { height: 88px; background: #141414; border: 1px solid #2c2c2c; border-left: 4px solid #a855f7; border-radius: 12px; margin-bottom: 12px; animation: bootpulse 1.4s ease-in-out infinite; }
-      @keyframes bootpulse { 50% { opacity: .5; } }
-      @media (min-width: 768px) { #boot .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; } #boot .card { margin: 0; } }
-      @media (min-width: 1024px) { #boot .grid { grid-template-columns: repeat(3, 1fr); } }
+      #boot .track { position: relative; width: 160px; height: 4px; border-radius: 999px; background: #212121; overflow: hidden; }
+      #boot .bar { position: absolute; inset: 0; width: 40%; border-radius: 999px; background: linear-gradient(90deg, transparent, #f59e0b, #fbbf24, #f59e0b, transparent); animation: bootShimmer 1.3s ease-in-out infinite; }
+      @keyframes bootGlow { 0%, 100% { opacity: .5; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.08); } }
+      @keyframes bootShimmer { 0% { transform: translateX(-120%); } 100% { transform: translateX(350%); } }
+      @media (prefers-reduced-motion: reduce) { #boot .glow, #boot .bar { animation: none; } }
     </style>
     <script>
       // First visit: start the one request the matches screen runs on (every competition, the next ten days) now,
@@ -73,14 +76,9 @@
   <body>
     <div id="root">
       <div id="boot" aria-hidden="true">
-        <div class="bar"><span class="logo"><b>Match</b><i>Hub</i></span></div>
-        <div class="wrap">
-          <div class="t"></div>
-          <div class="grid">
-            <div class="card"></div><div class="card"></div><div class="card"></div>
-            <div class="card"></div><div class="card"></div><div class="card"></div>
-          </div>
-        </div>
+        <span class="glow"></span>
+        <span class="logo"><b>Match</b><i>Hub</i></span>
+        <div class="track"><div class="bar"></div></div>
       </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>

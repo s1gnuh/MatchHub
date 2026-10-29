@@ -59,6 +59,16 @@ export default {
           '0%': { opacity: 0, transform: 'translateY(100%)' },
           '100%': { opacity: 1, transform: 'translateY(0)' },
         },
+        // Splash screen: a soft glow breathing behind the logo and an indeterminate shimmer sweeping the
+        // loading bar. Both loop freely — they are not tied to how long the data actually takes.
+        'splash-glow': {
+          '0%, 100%': { opacity: .5, transform: 'scale(.9)' },
+          '50%': { opacity: 1, transform: 'scale(1.08)' },
+        },
+        'splash-shimmer': {
+          '0%': { transform: 'translateX(-120%)' },
+          '100%': { transform: 'translateX(350%)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.45s cubic-bezier(.2,.7,.2,1) both',
@@ -76,6 +86,8 @@ export default {
         'tab-in-left': 'tab-in-left 0.42s cubic-bezier(.22,1,.36,1) backwards',
         'card-in': 'card-in 0.42s cubic-bezier(.22,1,.36,1) backwards',
         'slide-up': 'slide-up 0.35s cubic-bezier(.22,1,.36,1) both',
+        'splash-glow': 'splash-glow 1.8s ease-in-out infinite',
+        'splash-shimmer': 'splash-shimmer 1.3s ease-in-out infinite',
       },
     },
   },
