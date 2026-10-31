@@ -3,10 +3,12 @@ import AsyncBoundary from './AsyncBoundary.jsx'
 import MatchList from './MatchList.jsx'
 import RoundList from './RoundList.jsx'
 import TabPills from './TabPills.jsx'
+import Bracket from './Bracket.jsx'
 import { useLang } from '../utils/i18n.jsx'
 import useApi from '../utils/useApi.js'
-import { fetchCompetitionMatches } from '../services/api.js'
+import { COMPETITIONS, fetchCompetitionMatches } from '../services/api.js'
 import useUpcoming from '../utils/useUpcoming.js'
+import { KO_STAGES } from '../utils/bracket.js'
 import { stageLabel, matchesQuery } from '../utils/helpers.js'
 
 // Every match lands in exactly one list: decided matches under Results, everything else (scheduled, live,
@@ -14,7 +16,7 @@ import { stageLabel, matchesQuery } from '../utils/helpers.js'
 const DECIDED = ['FINISHED', 'AWARDED']
 // "soon" is the next ten days, taken from the one list that covers every competition, so it costs no request of
 // its own. The other three need the league's whole season, which is a request per league — only made once asked for.
-const MODES = ['soon', 'upcoming', 'results', 'rounds']
+const BASE_MODES = ['soon', 'upcoming', 'results', 'rounds']
 const LEAGUE_STAGES = ['REGULAR_SEASON', 'LEAGUE_STAGE', 'GROUP_STAGE'] // stages where "Matchday N" makes sense
 const roundKey = (m) => `${m.stage}|${m.matchday ?? 0}`
 
@@ -53,6 +55,10 @@ function groupByRound(list, rounds) {
 // and a match count. The last three group the whole season by round.
 export default function LeagueMatches({ code, search = '', defaultMode = 'soon' }) {
   const { t } = useLang()
+  // Only competitions with a knockout stage (CL, VNC — see their `knockout` flag) get a Bracket tab;
+  // a plain league season has nothing to pair into ties.
+  const hasBracket = Boolean(COMPETITIONS.find((c) => c.code === code)?.knockout)
+  const MODES = hasBracket ? [...BASE_MODES, 'bracket'] : BASE_MODES
   const [mode, setMode] = useState(defaultMode)
   // Slide direction of the last mode toggle; reset when the league changes (plain fade then).
   const [nav, setNav] = useState({ dir: null, code })
@@ -95,6 +101,20 @@ export default function LeagueMatches({ code, search = '', defaultMode = 'soon' 
                 {found.length
                   ? <MatchList matches={found} />
                   : <p className="py-16 text-center text-muted">{t('m.noneSoon')}</p>}
+              </div>
+            </>
+          )
+        }
+
+        if (mode === 'bracket') {
+          const ko = sorted.filter((m) => KO_STAGES.has(m.stage))
+          return (
+            <>
+              {bar(ko.length)}
+              <div key={`${code}-bracket`} className={enter}>
+                {ko.length
+                  ? <Bracket matches={ko} />
+                  : <p className="py-16 text-center text-muted">{t('m.none')}</p>}
               </div>
             </>
           )

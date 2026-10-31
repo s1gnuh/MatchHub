@@ -117,18 +117,49 @@ const LIVE = ['IN_PLAY', 'PAUSED']
 /**
  * Score for sorting matches by how interesting they are. Only the order matters, not the number.
  * Two big names facing each other score more than the sum of their parts, because that is the match people look for.
+ *
+ * `ctx` is optional and entirely opportunistic — it never costs a request of its own (see the callers):
+ *   favourites  Set of starred team ids (useFavourites.js) — a personal pick outranks a bigger match between strangers.
+ *   boost       Map<teamId, 0-6> from positionBoost() below, standing in for fame() when a club's real table
+ *               position happens to already be cached, but one the hard-coded lists don't know by name.
  */
-export function hotness(match) {
-  const home = fame(match.homeTeam)
-  const away = fame(match.awayTeam)
+export function hotness(match, ctx = {}) {
+  const { favourites, boost } = ctx
+  const home = Math.max(fame(match.homeTeam), boost?.get(match.homeTeam?.id) ?? 0)
+  const away = Math.max(fame(match.awayTeam), boost?.get(match.awayTeam?.id) ?? 0)
   let score = home + away
   if (Math.min(home, away) >= 6) score += 6 // a genuine headline tie, not a big club against a small one
   score += COMPETITION[match.competition?.code] ?? 0
   score += STAGE[match.stage] ?? 0
   if (LIVE.includes(match.status)) score += 25 // being played right now beats anything scheduled
+  if (favourites?.size) {
+    const homeFav = favourites.has(String(match.homeTeam?.id))
+    const awayFav = favourites.has(String(match.awayTeam?.id))
+    if (homeFav || awayFav) score += 18 // enough to clear a Champions League night (COMPETITION.CL = 8) on its own
+    if (homeFav && awayFav) score += 6  // a derby between two followed clubs, rarer still
+  }
   return score
 }
 
 /** Matches sorted by hotness, most interesting first; ties fall back to the earliest kickoff. */
-export const byHotness = (matches) =>
-  [...matches].sort((a, b) => hotness(b) - hotness(a) || a.utcDate.localeCompare(b.utcDate))
+export const byHotness = (matches, ctx) =>
+  [...matches].sort((a, b) => hotness(b, ctx) - hotness(a, ctx) || a.utcDate.localeCompare(b.utcDate))
+
+/**
+ * Fame-equivalent boost (0-6) per team id, read off an already-fetched league table — for a club that is
+ * genuinely in form but that the hard-coded lists above have no way of knowing about. Takes the `standings`
+ * shape returned by fetchStandings/useTablePositions; pass only a table this page already has in memory
+ * (e.g. from TanStack Query's cache), since fetching one just for this would defeat the point of hotness.js
+ * existing in the first place (see the file header).
+ */
+export function positionBoost(standings) {
+  const map = new Map()
+  const group = standings?.find?.((g) => g.type === 'TOTAL')
+  if (!group) return map
+  const total = group.table.length
+  for (const row of group.table) {
+    const share = 1 - (row.position - 1) / Math.max(total - 1, 1) // 1 at the top of the table, 0 at the bottom
+    map.set(row.team.id, Math.round(share * 6)) // capped below STRONG (6): never second-guesses a known big club
+  }
+  return map
+}

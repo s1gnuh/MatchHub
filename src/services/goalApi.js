@@ -48,6 +48,7 @@ export const GOAL_COMPETITIONS = [
     emblem: 'https://media.goal-api.com/badges/logo_leagues/401_cup.png',
     // A knockout cup has no league table, and no scorers are published for it.
     has: { standings: false, scorers: false },
+    knockout: true, // its league page gets a Bracket tab instead (see utils/bracket.js)
   },
 ]
 

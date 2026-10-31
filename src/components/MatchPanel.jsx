@@ -4,16 +4,22 @@ import AsyncBoundary from './AsyncBoundary.jsx'
 import TeamSquad from './TeamSquad.jsx'
 import Countdown from './Countdown.jsx'
 import MatchInsights from './MatchInsights.jsx'
+import FavouriteStar from './FavouriteStar.jsx'
 import LazyMount from './LazyMount.jsx'
 import useMatch from '../utils/useMatch.js'
 import { formatDate, formatTime, statusInfo, stageLabel, competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
 
+// The match page is where most people first notice a club they'd like to keep an eye on, so the star sits
+// right here rather than only on the team's own page.
 const Side = ({ team }) => (
-  <Link to={`/teams/${team.id}`} className="flex w-1/3 flex-col items-center gap-2 text-center hover:text-primary">
-    {team.crest && <img src={team.crest} alt="" className="h-16 w-16 object-contain sm:h-20 sm:w-20" />}
-    <span className="font-bold">{team.name}</span>
-  </Link>
+  <div className="flex w-1/3 flex-col items-center gap-1.5 text-center">
+    <Link to={`/teams/${team.id}`} className="flex flex-col items-center gap-2 hover:text-primary">
+      {team.crest && <img src={team.crest} alt="" className="h-16 w-16 object-contain sm:h-20 sm:w-20" />}
+      <span className="font-bold">{team.name}</span>
+    </Link>
+    <FavouriteStar teamId={team.id} />
+  </div>
 )
 
 // Everything about one match: score / kickoff, referee, form, head to head and both squads.

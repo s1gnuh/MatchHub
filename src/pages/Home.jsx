@@ -12,6 +12,7 @@ import MatchDetail from './MatchDetail.jsx'
 import useApi from '../utils/useApi.js'
 import useMatch from '../utils/useMatch.js'
 import useUpcoming from '../utils/useUpcoming.js'
+import useFavourites from '../utils/useFavourites.js'
 import useMediaQuery, { WIDE } from '../utils/useMediaQuery.js'
 import { competitionName, dayKey } from '../utils/helpers.js'
 import { hotness } from '../utils/hotness.js'
@@ -38,8 +39,9 @@ function Chip({ emblem, icon, label, active, onClick }) {
 }
 
 /** Match to show in the centre column when none is selected: a live one, else the one most people would pick
- * (the biggest when several leagues are in play, the next kickoff within one league), else the latest result. */
-function centreMatch(matches, rankByInterest) {
+ * (the biggest when several leagues are in play, the next kickoff within one league), else the latest result.
+ * `hotCtx` (favourites) is threaded into hotness() so a followed team's match can win the centre spot too. */
+function centreMatch(matches, rankByInterest, hotCtx) {
   if (!matches?.length) return null
   const sorted = [...matches].sort((a, b) => a.utcDate.localeCompare(b.utcDate))
   const live = sorted.find((m) => m.status === 'IN_PLAY' || m.status === 'PAUSED')
@@ -52,7 +54,7 @@ function centreMatch(matches, rankByInterest) {
     const today = dayKey(new Date().toISOString())
     const pool = open.filter((m) => dayKey(m.utcDate) === today)
     const from = pool.length ? pool : open
-    return { match: from.reduce((a, b) => (hotness(b) > hotness(a) ? b : a)), kind: 'hot' }
+    return { match: from.reduce((a, b) => (hotness(b, hotCtx) > hotness(a, hotCtx) ? b : a)), kind: 'hot' }
   }
   const last = sorted.filter((m) => m.status === 'FINISHED').pop()
   return last ? { match: last, kind: 'last' } : null
@@ -69,6 +71,7 @@ export default function Home() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const { favourites } = useFavourites()
 
   // ?league= names a competition; without it the featured screen is shown.
   const league = byCode(params.get('league'))
@@ -142,7 +145,7 @@ export default function Home() {
     )
   }
 
-  const featured = id ? null : centreMatch(pool, feat)
+  const featured = id ? null : centreMatch(pool, feat, { favourites })
   // Not coerced to a number: football-data numbers its matches, the Vietnamese provider uses cuids.
   const shownId = id ?? featured?.match.id ?? null
   const shown = id ? selected.data : featured?.match

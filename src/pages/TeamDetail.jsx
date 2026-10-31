@@ -1,6 +1,8 @@
 ﻿import { Link, useNavigate, useParams } from 'react-router-dom'
+import { BsStar, BsStarFill } from 'react-icons/bs'
 import AsyncBoundary from '../components/AsyncBoundary.jsx'
 import useApi from '../utils/useApi.js'
+import useFavourites from '../utils/useFavourites.js'
 import { fetchTeam } from '../services/api.js'
 import { ageFrom, competitionName } from '../utils/helpers.js'
 import { useLang } from '../utils/i18n.jsx'
@@ -11,6 +13,7 @@ export default function TeamDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const r = useApi(['team', id], () => fetchTeam(id))
+  const { isFavourite, toggle } = useFavourites()
   const t = r.data
   const squad = (t?.squad || []).reduce((acc, p) => {
     const k = p.position || 'Other'
@@ -28,7 +31,16 @@ export default function TeamDetail() {
               <div className="flex flex-col items-center gap-4 rounded-xl bg-card p-6 shadow-sm sm:flex-row">
                 {t.crest && <img src={t.crest} alt="" className="h-24 w-24 object-contain" />}
                 <div className="text-center sm:text-left">
-                  <h1 className="text-3xl font-bold">{t.name}</h1>
+                  <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+                    <h1 className="text-3xl font-bold">{t.name}</h1>
+                    <button
+                      onClick={() => toggle(t.id)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-semibold transition active:scale-95 ${isFavourite(t.id) ? 'border-primary bg-primary/10 text-primary' : 'border-line text-muted hover:border-primary/50 hover:text-primary'}`}
+                    >
+                      {isFavourite(t.id) ? <BsStarFill size={13} /> : <BsStar size={13} />}
+                      {isFavourite(t.id) ? tr('fav.following') : tr('fav.follow')}
+                    </button>
+                  </div>
                   <p className="text-muted">
                     {[t.area?.name, t.founded && tr('td.founded', { y: t.founded }), t.venue].filter(Boolean).join(' · ')}
                   </p>

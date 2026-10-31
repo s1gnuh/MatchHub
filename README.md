@@ -75,7 +75,9 @@ Phones keep the simple flow: list first, tap a match to open it.
 
 ## Features
 
-- **All-leagues home screen** with two views. **Today** is the default: today's matches across all 11 competitions, with a **day strip** to step through the next 10 days (a day with nothing on stays in the strip, dimmed, so a quiet Tuesday is never a dead end). **Featured** instead ranks the undecided matches by how big they are — a Champions League night outranks a league weekend, and two big names facing each other outrank a big club against a small one. It takes one request per provider — two in all — and the page paints on the first, so switching view, day or league here, and opening any of these matches, costs **no request at all**.
+- **All-leagues home screen** with three views. **Today** is the default: today's matches across all 11 competitions, with a **day strip** to step through the next 10 days (a day with nothing on stays in the strip, dimmed, so a quiet Tuesday is never a dead end). **Featured** ranks the undecided matches by how big they are — a Champions League night outranks a league weekend, two big names facing each other outrank a big club against a small one, and a match involving one of your followed teams (see below) outranks almost anything else. **My Teams** lists every match of your followed teams in the window, soonest first. All three come from one request per provider — two in all — and the page paints on the first, so switching view, day or league here, and opening any of these matches, costs **no request at all**.
+- **Favourites:** star a team from its page, from the league's Teams grid, or right from a match page, and it is remembered (and followed across tabs/devices sharing the same browser profile via `localStorage`). Followed teams get their own **My Teams** view on the home screen and a boost in **Featured**'s ranking.
+- **Knockout bracket:** the Champions League and the Vietnamese Cup get a **Bracket** tab on their league page instead of just a flat round list — two-legged ties are combined into one aggregate score per tie, with each leg's own result underneath, read entirely from the season's match list already loaded for the Rounds view (no extra request).
 - **Fixtures & results** for 11 competitions — eight from football-data.org, three Vietnamese. Switch league from the chip bar (with league logos); each league opens on its **next 10 days** (free, from the list already loaded), with **Upcoming** and **Results** grouped by matchday (or knockout round) covering the **whole season**, results newest first, one request away.
 - **Rounds view:** step through any matchday or knockout round with prev/next buttons or a dropdown.
 - **Table position on match cards:** each team's current league position (`#3`) is shown until the match is finished.
@@ -85,7 +87,7 @@ Phones keep the simple flow: list first, tap a match to open it.
 - **Top scorers** with age, matches, assists and penalties; names open a **player page** (shirt number, position, nationality, age, current team). Squads show ages and link to player pages too.
 - **Match insights:** recent form of both teams and **head to head** (this season, or earlier seasons on request), with **AET / Pens** badges and stage names (Quarter-finals, Final…) for cup matches.
 - **Match page** with score, kickoff countdown, referee and the **squads of both teams** (players grouped by position, plus the coach).
-- **League pages** with four tabs: Matches, Standings, Top Scorers and Teams. **Team pages** with club info, running competitions and the full squad.
+- **League pages** with four tabs: Matches, Standings, Top Scorers and Teams (plus Bracket for the Champions League and the Vietnamese Cup). **Team pages** with club info, running competitions, the full squad and a Follow button.
 - **Live feel:** pulsing LIVE dot, kickoff countdown, today's matches highlighted, and a back-to-top button.
 - **Hanoi time (GMT+7)** for every kickoff time and date, whatever the visitor's timezone.
 - **English / Vietnamese** language switch (remembered between visits), including localised league names (e.g. *Ngoại hạng Anh*, *VĐQG Tây Ban Nha (La Liga)*).
@@ -216,7 +218,8 @@ MatchHub/
 ├── public/                 # Static assets: logo, PWA manifest, icons, service worker (sw.js)
 ├── src/
 │   ├── components/         # MatchCard, MatchList, RoundList, LeagueMatches, MatchPanel, MatchInsights,
-│   │                       # Standings, StandingsMini, Scorers, TeamSquad, TeamGrid, Header, SearchFilter…
+│   │                       # Standings, StandingsMini, Scorers, TeamSquad, TeamGrid, Header, SearchFilter,
+│   │                       # Bracket (knockout ties), FavouriteStar…
 │   ├── pages/              # Home (also serves /matches/:id), Leagues, Competition, MatchDetail,
 │   │                       # TeamDetail, PlayerDetail, NotFound
 │   ├── services/
@@ -226,6 +229,9 @@ MatchHub/
 │   │   ├── helpers.js      # Hanoi-time formatting, status badges, league names and colours
 │   │   ├── i18n.jsx        # EN / VI dictionary and language provider
 │   │   ├── form.js         # Recent form and head to head from a match list
+│   │   ├── hotness.js      # Featured ranking: fixed fame list + cached-standings boost + favourites
+│   │   ├── bracket.js      # Pairs a knockout season's matches into ties (aggregate score, legs)
+│   │   ├── useFavourites.js # Starred teams, shared across components, persisted in localStorage
 │   │   ├── useApi.js       # TanStack Query wrapper used by every page
 │   │   └── useMatch.js …   # cache-first match lookup, table positions, media query, shared clock
 │   ├── styles/global.css   # Design tokens (black & gold palette)

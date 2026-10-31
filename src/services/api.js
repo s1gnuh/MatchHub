@@ -151,7 +151,9 @@ export const FD_COMPETITIONS = [
   { code: 'SA', name: 'Serie A', country: 'Italy', emblem: `${EMBLEM}c111.png` },
   { code: 'BL1', name: 'Bundesliga', country: 'Germany', emblem: `${EMBLEM}BL1.png` },
   { code: 'FL1', name: 'Ligue 1', country: 'France', emblem: `${EMBLEM}FL1.png` },
-  { code: 'CL', name: 'Champions League', country: 'Europe', emblem: `${EMBLEM}CL.png` },
+  // `knockout`: this competition's season has single/two-legged knockout rounds, so its league page offers
+  // a Bracket tab (see components/LeagueMatches.jsx and utils/bracket.js).
+  { code: 'CL', name: 'Champions League', country: 'Europe', emblem: `${EMBLEM}CL.png`, knockout: true },
   { code: 'ELC', name: 'Championship', country: 'England', emblem: `${EMBLEM}ELC.png` },
   { code: 'BSA', name: 'Série A', country: 'Brazil', emblem: `${EMBLEM}bsa.png` },
 ]

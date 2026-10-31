@@ -1,4 +1,6 @@
 import { useContext, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import AsyncBoundary from './AsyncBoundary.jsx'
 import DayStrip from './DayStrip.jsx'
 import MatchCard from './MatchCard.jsx'
@@ -8,11 +10,12 @@ import { ListContext } from './ListContext.js'
 import { useLang } from '../utils/i18n.jsx'
 import useUpcoming from '../utils/useUpcoming.js'
 import useSwipe from '../utils/useSwipe.js'
+import useFavourites from '../utils/useFavourites.js'
 import { UPCOMING_DAYS } from '../services/api.js'
-import { byHotness } from '../utils/hotness.js'
+import { byHotness, positionBoost } from '../utils/hotness.js'
 import { dayKey, matchesQuery } from '../utils/helpers.js'
 
-const MODES = ['today', 'hot'] // "today" first: it is what the screen opens on
+const MODES = ['today', 'hot', 'mine'] // "today" first: it is what the screen opens on
 const DECIDED = ['FINISHED', 'AWARDED']
 const HOT_LIMIT = 30 // a highlights list, not a full fixture list: enough to scroll, not enough to get lost in
 
@@ -45,6 +48,8 @@ export default function FeaturedMatches({ search = '' }) {
   const [dir, setDir] = useState(null)
   const enter = dir === 'left' ? 'animate-tab-in-left' : dir === 'right' ? 'animate-tab-in-right' : 'animate-fade-in'
   const r = useUpcoming()
+  const { favourites } = useFavourites()
+  const qc = useQueryClient()
 
   const all = r.data || []
   const days = useMemo(() => buildDays(all), [all])
@@ -81,8 +86,19 @@ export default function FeaturedMatches({ search = '' }) {
         // strip steps aside until the box is cleared.
         const searching = mode === 'today' && Boolean(q)
         const ofDay = byDate.filter((m) => dayKey(m.utcDate) === shownDay)
-        const hot = byHotness(found.filter((m) => !DECIDED.includes(m.status))).slice(0, HOT_LIMIT)
-        const shown = mode === 'hot' ? hot : searching ? byDate : ofDay
+
+        // Reads whichever standings are already in TanStack Query's cache (e.g. the side table on a
+        // previous visit to that league) — never fetches one just to rank this screen; see hotness.js.
+        const boost = new Map()
+        for (const code of new Set(found.map((m) => m.competition?.code).filter(Boolean))) {
+          const standings = qc.getQueryData(['standings', code])
+          if (standings) for (const [id, v] of positionBoost(standings)) boost.set(id, v)
+        }
+        const hot = byHotness(found.filter((m) => !DECIDED.includes(m.status)), { favourites, boost }).slice(0, HOT_LIMIT)
+        // Every match of a starred team in the window, soonest first — results included, so a result missed
+        // yesterday still turns up rather than vanishing once decided.
+        const mine = byDate.filter((m) => favourites.has(String(m.homeTeam?.id)) || favourites.has(String(m.awayTeam?.id)))
+        const shown = mode === 'hot' ? hot : mode === 'mine' ? mine : searching ? byDate : ofDay
 
         return (
           <>
@@ -101,14 +117,23 @@ export default function FeaturedMatches({ search = '' }) {
             {/* key restarts the entrance animation when the view, the day or the search changes */}
             <div key={`${mode}-${searching ? 'q' : shownDay}`} className={enter}
               {...(mode === 'today' && !searching ? swipe : {})}>
-              {!shown.length && (
+              {!shown.length && mode === 'mine' && !favourites.size && (
+                <p className="py-16 text-center text-muted">
+                  {t('fav.noneTeams')}{' '}
+                  <Link to="/leagues" className="text-primary hover:underline">{t('leagues.title')}</Link>
+                </p>
+              )}
+              {!shown.length && mode === 'mine' && Boolean(favourites.size) && (
+                <p className="py-16 text-center text-muted">{t('fav.noneMatches', { n: UPCOMING_DAYS })}</p>
+              )}
+              {!shown.length && mode !== 'mine' && (
                 <p className="py-16 text-center text-muted">{mode === 'today' && !searching ? t('day.none') : t('m.none')}</p>
               )}
               {Boolean(shown.length) && searching && <MatchList matches={byDate} />}
               {Boolean(shown.length) && !searching && (
-                // One day, or the hot ranking: a flat list either way. The ranking is not in day order, so
-                // those cards state their own day.
-                <ListContext.Provider value={{ ...ctx, showDay: mode === 'hot' }}>
+                // One day, or a flat ranking (hot) / personal list (mine): the latter two are not in day
+                // order, so those cards state their own day.
+                <ListContext.Provider value={{ ...ctx, showDay: mode === 'hot' || mode === 'mine' }}>
                   <div className={listClass(ctx.dense)}>
                     {shown.map((m, i) => <MatchCard key={m.id} match={m} index={i} today={mode === 'today' && shownDay === days[0]?.key} />)}
                   </div>
